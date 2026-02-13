@@ -1,0 +1,14 @@
+{
+  "welcome": "স্বাগতম!",
+  "appName": "বাজারের ফর্দ",
+  "descriptionBn": "আপনার কেনাকাটার তালিকা তৈরি করুন, খরচ হিসাব করুন এবং বাজার করা সহজ করুন।",
+  "descriptionEn": "Create shopping lists, track prices, and simplify your grocery runs.",
+  "enterName": "আপনার নাম লিখুন",
+  "enterNameBn": "আপনার নাম লিখুন (Enter your name)",
+  "namePlaceholder": "যেমন: আনিকা রহমান",
+  "getStarted": "শুরু করুন",
+  "getStartedBn": "শুরু করুন (Get Started)",
+  "termsText": "চালিয়ে যাওয়ার মাধ্যমে, আপনি আমাদের সম্মত হচ্ছেন",
+  "termsLink": "শর্তাবলী ও গোপনীয়তা নীতি",
+  "languageToggle": "বাংলা / EN"
+}

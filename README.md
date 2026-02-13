@@ -1,50 +1,67 @@
-# Welcome to your Expo app 👋
+# Hatkhata (Bazaar List)
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+**Hatkhata** (Bengali for "Hand Ledger") is a modern, privacy-focused bazaar/shopping list application built with React Native and Expo. It helps you organize your shopping needs efficiently with a clean, intuitive interface available in both Bengali and English.
 
-## Get started
+## Features
 
-1. Install dependencies
+- **📝 Smart Lists**: Create and manage multiple shopping lists with ease.
+- **🏷️ Tagging System**: Organize lists by categories (e.g., Grocery, Bazaar, Essentials) using color-coded tags.
+- **🔍 Quick Search**: Instantly find lists by title, items, or notes.
+- **🇧🇩 Bilingual Support**: Full support for Bengali and English languages.
+- **💰 Price Tracking**: Optional price tracking for items with automatic total calculation.
+- **🔄 Drag & Drop**: Easily reorder items within a list.
+- **📊 Data Export**: Export your list data to CSV format for external analysis.
+- **🎨 Modern Design**: Beautiful, responsive UI with light and dark mode support.
+- **🔒 Privacy First**: All data is stored locally on your device.
 
+## Tech Stack
+
+- **Framework**: [React Native](https://reactnative.dev/) with [Expo](https://expo.dev/)
+- **Navigation**: [Expo Router](https://docs.expo.dev/router/introduction/)
+- **State Management**: [Zustand](https://github.com/pmndrs/zustand)
+- **Styling**: [React Native Unistyles](https://github.com/jpudom/react-native-unistyles)
+- **Icons**: [Expo Vector Icons](https://icons.expo.fyi/)
+- **Storage**: [AsyncStorage](https://react-native-async-storage.github.io/async-storage/)
+- **Internationalization**: [i18next](https://www.i18next.com/)
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js (v18 or later)
+- npm or bun
+
+### Installation
+
+1. **Clone the repository**
    ```bash
-   npm install
+   git clone https://github.com/AbdullahAlMaksud/HatkhataApp.git
+   cd HatkhataApp
    ```
 
-2. Start the app
+2. **Install dependencies**
+   ```bash
+   npm install
+   # or
+   bun install
+   ```
 
+3. **Run the app**
    ```bash
    npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+## Usage
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+- **Create a List**: Tap the `+` button to start a new shopping list.
+- **Add Items**: Add items with optional quantity and price.
+- **Manage Items**: Swipe to delete, check to complete, or drag to reorder.
+- **Settings**: Customize currency, language (Bangla/English), and theme.
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## Contributing
 
-## Get a fresh project
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-When you're ready, run:
+## License
 
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+This project is licensed under the MIT License.

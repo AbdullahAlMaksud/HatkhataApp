@@ -1,0 +1,15 @@
+{
+  "editProfile": "Edit Profile",
+  "changePhoto": "Change Profile Photo",
+  "publicProfile": "PUBLIC PROFILE",
+  "name": "Name",
+  "username": "Username",
+  "usernameNote": "This name will be visible to your shared shopping lists",
+  "contactInfo": "CONTACT INFO",
+  "email": "Email",
+  "phone": "Phone",
+  "bio": "BIO",
+  "bioPlaceholder": "Tell us about yourself...",
+  "deleteAccount": "Delete Account",
+  "deleteAccountConfirm": "Are you sure? This action cannot be undone."
+}

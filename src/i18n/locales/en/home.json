@@ -1,0 +1,16 @@
+{
+  "greeting": "WELCOME",
+  "title": "Hatkhata",
+  "subtitle": "Your shopping lists",
+  "emptyTitle": "No lists yet",
+  "emptySubtitle": "Create a new list to get started",
+  "createList": "New List",
+  "totalCost": "Total Cost",
+  "itemCount": "{{count}} items",
+  "filterAll": "All",
+  "sortNewest": "Newest",
+  "sortOldest": "Oldest",
+  "sortCategory": "Category",
+  "pinned": "Pinned",
+  "unpinned": "Unpinned"
+}

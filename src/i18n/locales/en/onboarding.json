@@ -1,0 +1,14 @@
+{
+  "welcome": "Welcome!",
+  "appName": "Hatkhata",
+  "descriptionBn": "আপনার কেনাকাটার তালিকা তৈরি করুন, খরচ হিসাব করুন এবং বাজার করা সহজ করুন।",
+  "descriptionEn": "Create shopping lists, track prices, and simplify your grocery runs.",
+  "enterName": "Enter your name",
+  "enterNameBn": "আপনার নাম লিখুন",
+  "namePlaceholder": "Ex: Anika Rahman",
+  "getStarted": "Get Started",
+  "getStartedBn": "শুরু করুন",
+  "termsText": "By continuing, you agree to our",
+  "termsLink": "Terms & Privacy Policy",
+  "languageToggle": "বাংলা / EN"
+}

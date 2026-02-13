@@ -1,0 +1,22 @@
+{
+  "title": "ট্যাগ",
+  "createTag": "ট্যাগ তৈরি করুন",
+  "editTag": "ট্যাগ সম্পাদনা",
+  "deleteTag": "ট্যাগ মুছুন",
+  "deleteTagConfirm": "আপনি কি এই ট্যাগটি মুছে ফেলতে চান?",
+  "tagName": "ট্যাগের নাম",
+  "tagNamePlaceholder": "ট্যাগের নাম লিখুন",
+  "tagColor": "ট্যাগের রঙ",
+  "noTags": "কোনো ট্যাগ নেই",
+  "noTagsSubtitle": "তালিকা সাজাতে প্রথম ট্যাগ তৈরি করুন",
+  "defaultTags": {
+    "grocery": "মুদি",
+    "bazaar": "বাজার",
+    "essentials": "প্রয়োজনীয়",
+    "vegetables": "শাকসবজি",
+    "fruits": "ফলমূল",
+    "fish": "মাছ",
+    "meat": "মাংস"
+  },
+  "usedInLists": "{{count}}টি তালিকায় ব্যবহৃত"
+}
