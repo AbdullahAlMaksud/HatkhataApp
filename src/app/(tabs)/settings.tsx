@@ -1,4 +1,4 @@
-import * as FileSystem from 'expo-file-system';
+import { File, Paths } from 'expo-file-system';
 import { useRouter } from 'expo-router';
 import * as Sharing from 'expo-sharing';
 import React, { useState } from 'react';
@@ -90,14 +90,14 @@ export default function SettingsScreen() {
       );
 
       const csvContent = header + rows.join('\n');
-      const fileUri = FileSystem.documentDirectory + 'hatkhata_export.csv';
-
-      await FileSystem.writeAsStringAsync(fileUri, csvContent, {
-        encoding: 'utf8',
-      });
+      const file = new File(Paths.document, 'hatkhata_export.csv');
+      if (!file.exists) {
+        file.create();
+      }
+      file.write(csvContent);
 
       if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(fileUri);
+        await Sharing.shareAsync(file.uri);
       } else {
         Alert.alert('Error', 'Sharing is not available on this device');
       }
