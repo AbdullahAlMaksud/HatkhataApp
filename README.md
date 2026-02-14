@@ -1,35 +1,70 @@
-# Hatkhata (Bazaar List)
+# Hatkhata (Bazaar List) 📝
 
-**Hatkhata** (Bengali for "Hand Ledger") is a modern, privacy-focused bazaar/shopping list application built with React Native and Expo. It helps you organize your shopping needs efficiently with a clean, intuitive interface available in both Bengali and English.
+<div align="center">
+  <img src="./src/assets/images/applogo/logo.png" alt="Hatkhata Logo" width="120" height="120" />
+  <br />
+  <h3><b>Smart Shopping, Simplified.</b></h3>
+  <p>Available in Bengali 🇧🇩 and English 🇺🇸</p>
+</div>
 
-## Features
+---
 
-- **📝 Smart Lists**: Create and manage multiple shopping lists with ease.
-- **🏷️ Tagging System**: Organize lists by categories (e.g., Grocery, Bazaar, Essentials) using color-coded tags.
-- **🔍 Quick Search**: Instantly find lists by title, items, or notes.
-- **🇧🇩 Bilingual Support**: Full support for Bengali and English languages.
-- **💰 Price Tracking**: Optional price tracking for items with automatic total calculation.
-- **🔄 Drag & Drop**: Easily reorder items within a list.
-- **📊 Data Export**: Export your list data to CSV format for external analysis.
-- **🎨 Modern Design**: Beautiful, responsive UI with light and dark mode support.
-- **🔒 Privacy First**: All data is stored locally on your device.
+**Hatkhata** (Bengali for "Hand Ledger") is a privacy-focused, modern shopping list application designed to make your daily bazaar and grocery planning effortless. Built with **React Native** and **Expo**, it offers a seamless experience on both Android and iOS.
 
-## Tech Stack
+## ✨ Key Features
 
-- **Framework**: [React Native](https://reactnative.dev/) with [Expo](https://expo.dev/)
-- **Navigation**: [Expo Router](https://docs.expo.dev/router/introduction/)
+- **📝 Smart Lists**: Create multiple shopping lists for different needs (e.g., Weekly Grocery, Friday Bazaar).
+- **🏷️ Organized Tags**: Categorize items with color-coded tags for quick visual identification.
+- **🇧🇩 Bilingual Support**: Fully localized in **Bengali** and **English**, with instant language switching.
+- **💰 Expense Tracking**: Track item prices and calculate total estimated costs automatically.
+- **🔄 Drag & Drop**: Prioritize your shopping list by dragging and reordering items.
+- **🌙 Dark Mode**: Beautifully designed UI that adapts to your device's light and dark themes.
+- **🔒 Privacy First**: Your data stays on your device. No account creation required.
+- **⚡ Offline Ready**: Works perfectly without an internet connection.
+
+## 📱 Screenshots
+
+| Home Screen | List Details | Settings |
+|:-----------:|:------------:|:--------:|
+| <img src="./src/assets/images/applogo/splash-icon-dark.png" width="200" /> | <img src="./src/assets/images/applogo/splash-icon-dark.png" width="200" /> | <img src="./src/assets/images/applogo/splash-icon-dark.png" width="200" /> |
+*(Placeholders - Replace with actual screenshots)*
+
+## 🛠️ Tech Stack
+
+- **Core**: [React Native](https://reactnative.dev/), [Expo](https://expo.dev/), [TypeScript](https://www.typescriptlang.org/)
+- **Navigation**: [Expo Router](https://docs.expo.dev/router/introduction/) (File-based routing)
 - **State Management**: [Zustand](https://github.com/pmndrs/zustand)
-- **Styling**: [React Native Unistyles](https://github.com/jpudom/react-native-unistyles)
-- **Icons**: [Expo Vector Icons](https://icons.expo.fyi/)
-- **Storage**: [AsyncStorage](https://react-native-async-storage.github.io/async-storage/)
-- **Internationalization**: [i18next](https://www.i18next.com/)
+- **Styling**: [Unistyles](https://github.com/jpudom/react-native-unistyles) (Static & Dynamic theming)
+- **Storage**: [AsyncStorage](https://react-native-async-storage.github.io/async-storage/) (Local persistence)
+- **Localization**: [i18next](https://www.i18next.com/)
+- **Media**: `expo-image`, `expo-image-picker`
 
-## Getting Started
+## 📂 Project Structure
+
+```bash
+src/
+├── app/                 # Expo Router screens and layout
+├── assets/              # Images, fonts, and icons
+├── components/          # Reusable UI components
+│   ├── home/            # Home screen specific components
+│   ├── list-detail/     # List detail screen components
+│   └── ...
+├── constants/           # App constants (Colors, Layout)
+├── hooks/               # Custom React hooks
+├── i18n/                # Localization configs (en/bn)
+├── store/               # Zustand stores (useListStore, useUserStore)
+├── styles/              # Unistyles theme setup
+└── types/               # TypeScript definitions
+```
+
+## 🚀 Getting Started
+
+Follow these steps to set up the project locally.
 
 ### Prerequisites
-
-- Node.js (v18 or later)
-- npm or bun
+- [Node.js](https://nodejs.org/) (v18 or newer)
+- [npm](https://www.npmjs.com/) or [bun](https://bun.sh/)
+- [Expo Go](https://expo.dev/client) app on your mobile device (Android/iOS)
 
 ### Installation
 
@@ -46,22 +81,32 @@
    bun install
    ```
 
-3. **Run the app**
+3. **Start the development server**
    ```bash
    npx expo start
    ```
 
-## Usage
+4. **Run on your device**
+   - **Android**: Scan the QR code with the Expo Go app.
+   - **iOS**: Scan the QR code with the Camera app (requires Expo Go).
+   - **Emulator**: Press `a` for Android Emulator or `i` for iOS Simulator.
 
-- **Create a List**: Tap the `+` button to start a new shopping list.
-- **Add Items**: Add items with optional quantity and price.
-- **Manage Items**: Swipe to delete, check to complete, or drag to reorder.
-- **Settings**: Customize currency, language (Bangla/English), and theme.
+## 🤝 Contributing
 
-## Contributing
+Contributions are welcome! If you find a bug or have a feature request, please open an issue or submit a Pull Request.
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'feat: Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-## License
+## 📄 License
 
-This project is licensed under the MIT License.
+This project is licensed under the **MIT License**.
+
+---
+
+<div align="center">
+  Made with ❤️ by <a href="https://github.com/AbdullahAlMaksud">Abdullah Al Maksud</a>
+</div>
