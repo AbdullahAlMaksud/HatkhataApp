@@ -17,7 +17,7 @@ const AvatarSection: FC<AvatarSectionProps> = ({ changePhotoText, imageUri, onPr
         {imageUri ? (
           <Image source={{ uri: imageUri }} style={styles.image} />
         ) : (
-          <Ionicons name="person" size={40} color={styles.avatarIcon.color} />
+          <Image source={require('@/assets/images/applogo/logo.png')} style={styles.image} />
         )}
         <View style={styles.editBadge}>
           <Ionicons name="pencil" size={12} color="#FFFFFF" />

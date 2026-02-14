@@ -19,7 +19,10 @@ const ProfileCard: FC<ProfileCardProps> = ({ name, avatar, onPress, syncActive, 
         {avatar ? (
           <Image source={{ uri: avatar }} style={styles.avatarImage} />
         ) : (
-          <Ionicons name="person" size={24} color={styles.avatarIcon.color} />
+          <Image
+            source={require('@/assets/images/applogo/logo.png')}
+            style={styles.avatarImage}
+          />
         )}
       </View>
       <View style={styles.profileInfo}>

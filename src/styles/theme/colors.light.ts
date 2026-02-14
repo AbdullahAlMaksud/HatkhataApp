@@ -1,6 +1,7 @@
 export const lightColors = {
   // Brand / Primary
-  primary: '#34C759',
+  primary: '#075a41ff',
+  // primary: '#34C759',
   primaryLight: '#E8F8ED',
   primaryForeground: '#FFFFFF',
 
