@@ -22,6 +22,7 @@
   "deleteList": "তালিকা মুছুন",
   "deleteListConfirm": "আপনি কি এই তালিকাটি মুছে ফেলতে চান?",
   "deleteItem": "আইটেম মুছুন",
+  "deleteItemConfirm": "আপনি কি এই আইটেমটি মুছে ফেলতে চান?",
   "pinNote": "নোট পিন করুন",
   "unpinNote": "নোট আনপিন করুন",
   "checklistItems": "আইটেমসমূহ",

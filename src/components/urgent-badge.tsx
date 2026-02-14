@@ -7,7 +7,7 @@ interface UrgentBadgeProps {
   variant?: 'urgent' | 'weekly' | 'default';
 }
 
-export const UrgentBadge: React.FC<UrgentBadgeProps> = ({
+const UrgentBadge: React.FC<UrgentBadgeProps> = ({
   label,
   variant = 'default',
 }) => {
@@ -57,3 +57,5 @@ const styles = StyleSheet.create((theme) => ({
     color: theme.colors.primary,
   },
 }));
+
+export default UrgentBadge;

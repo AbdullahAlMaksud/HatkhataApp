@@ -12,7 +12,7 @@ import { StatusBar } from 'expo-status-bar';
 
 SplashScreen.preventAutoHideAsync();
 
-export default function RootLayout() {
+const RootLayout = () => {
   const isOnboarded = useUserStore((s) => s.isOnboarded);
 
   const [fontsLoaded] = useFonts(FONT_ASSETS);
@@ -31,7 +31,7 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="onboarding" />
-        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="main" />
         <Stack.Screen
           name="list/[id]"
           options={{ animation: 'slide_from_right' }}
@@ -41,8 +41,10 @@ export default function RootLayout() {
           options={{ animation: 'slide_from_right' }}
         />
       </Stack>
-      <StatusBar style='inverted'/>
+      <StatusBar style='dark'/>
       {!isOnboarded && <Redirect href="/onboarding" />}
     </GestureHandlerRootView>
   );
-}
+};
+
+export default RootLayout;

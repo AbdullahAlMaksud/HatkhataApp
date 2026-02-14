@@ -20,8 +20,20 @@ export const calculateUncheckedTotal = (items: BazaarItem[]): number => {
     );
 };
 
-export const formatCurrency = (amount: number, symbol: string = '৳'): string => {
-  return `${symbol} ${(amount ?? 0).toLocaleString()}`;
+const BENGALI_DIGITS = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+
+export const toBengaliDigits = (str: string): string => {
+  return str.replace(/[0-9]/g, (d) => BENGALI_DIGITS[Number(d)]);
+};
+
+export const toLocalizedDigits = (value: string | number, language: string): string => {
+  const str = String(value);
+  return language === 'bn' ? toBengaliDigits(str) : str;
+};
+
+export const formatCurrency = (amount: number, symbol: string = '৳', language?: string): string => {
+  const formatted = `${symbol} ${(amount ?? 0).toLocaleString()}`;
+  return language === 'bn' ? toBengaliDigits(formatted) : formatted;
 };
 
 export const getCheckedItems = (items: BazaarItem[]): BazaarItem[] => {

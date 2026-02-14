@@ -6,10 +6,10 @@ import { StyleSheet } from 'react-native-unistyles';
 
 import { Ionicons } from '@expo/vector-icons';
 
-import { useTagStore } from '@/store';
+import { useSettingsStore, useTagStore } from '@/store';
 import type { BazaarList } from '@/types';
-import { calculateListTotal, formatCurrency } from '@/utils/calculations';
-import { UrgentBadge } from './UrgentBadge';
+import { calculateListTotal, formatCurrency, toLocalizedDigits } from '@/utils/calculations';
+import UrgentBadge from './urgent-badge';
 
 interface BazaarListCardProps {
   list: BazaarList;
@@ -21,7 +21,7 @@ interface BazaarListCardProps {
 
 const MAX_PREVIEW_ITEMS = 3;
 
-export const BazaarListCard: React.FC<BazaarListCardProps> = ({
+const BazaarListCard: React.FC<BazaarListCardProps> = ({
   list,
   currencySymbol = '৳',
   showTotalPrice = true,
@@ -30,6 +30,7 @@ export const BazaarListCard: React.FC<BazaarListCardProps> = ({
 }) => {
   const router = useRouter();
   const getTagById = useTagStore((s) => s.getTagById);
+  const language = useSettingsStore((s) => s.language);
 
   const total = useMemo(() => calculateListTotal(list.items), [list.items]);
   const previewItems = list.items.slice(0, MAX_PREVIEW_ITEMS);
@@ -86,31 +87,32 @@ export const BazaarListCard: React.FC<BazaarListCardProps> = ({
               </Text>
               {showTotalPrice && (
                 <Text style={styles.previewPrice}>
-                  {formatCurrency(item.price ?? 0, currencySymbol)}
+                  {formatCurrency(item.price ?? 0, currencySymbol, language)}
                 </Text>
               )}
             </View>
           );
         })}
         {remainingCount > 0 && (
-          <Text style={styles.moreText}>+ {remainingCount} more</Text>
+          <Text style={styles.moreText}>+ {toLocalizedDigits(remainingCount, language)} more</Text>
         )}
       </View>
 
       {/* Footer */}
       <View style={styles.footer}>
         <Text style={styles.itemCount}>
-          {list.items.length} items
+          {toLocalizedDigits(list.items.length, language)} items
         </Text>
         {showTotalPrice ? (
           <Text style={styles.totalPrice}>
-            {formatCurrency(total, currencySymbol)}
+            {formatCurrency(total, currencySymbol, language)}
           </Text>
         ) : (
           <Text style={styles.lastEdited}>
-            {new Date(list.updatedAt).toLocaleDateString('bn-BD', {
+            {new Date(list.updatedAt).toLocaleDateString(language === 'bn' ? 'bn-BD' : 'en-US', {
               day: 'numeric',
-              month: 'short',
+              month: 'long',
+              year: 'numeric',
             })}
           </Text>
         )}
@@ -214,3 +216,5 @@ const styles = StyleSheet.create((theme) => ({
     fontFamily: theme.fontFamily.regular,
   },
 }));
+
+export default BazaarListCard;

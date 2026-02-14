@@ -1,16 +1,17 @@
-import React from 'react';
+import React, { FC } from 'react';
 import { Pressable, type ViewStyle } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
+import { WithTheme, withUniTheme } from '@/styles/hoc/with-unistyles';
 import { Ionicons } from '@expo/vector-icons';
 
-interface FABProps {
+interface FABProps extends WithTheme {
   onPress: () => void;
   icon?: keyof typeof Ionicons.glyphMap;
   style?: ViewStyle;
 }
 
-export const FAB: React.FC<FABProps> = ({ onPress, icon = 'add', style }) => {
+const FAB: FC<FABProps> = ({ onPress, icon = 'add', style, theme }) => {
   return (
     <Pressable
       style={({ pressed }) => [
@@ -20,7 +21,7 @@ export const FAB: React.FC<FABProps> = ({ onPress, icon = 'add', style }) => {
       ]}
       onPress={onPress}
     >
-      <Ionicons name={icon} size={20} color="#FFFFFF" />
+      <Ionicons name={icon} size={20} color={theme.colors.textInverse} />
     </Pressable>
   );
 };
@@ -33,7 +34,7 @@ const styles = StyleSheet.create((theme, rt) => ({
     width: theme.gap(14),
     height: theme.gap(14),
     borderRadius: theme.gap(14),
-    backgroundColor: theme.colors.black,
+    backgroundColor: theme.colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
     ...theme.shadows.lg,
@@ -44,3 +45,5 @@ const styles = StyleSheet.create((theme, rt) => ({
     transform: [{ scale: 0.95 }],
   },
 }));
+
+export default withUniTheme(FAB);

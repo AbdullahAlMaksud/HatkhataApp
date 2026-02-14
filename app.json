@@ -15,7 +15,7 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
-        "images": "./src/assets/images/applogo/adaptive-icon.png"
+        "foregroundImage": "./src/assets/images/applogo/adaptive-icon.png"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
@@ -38,6 +38,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "2197bf19-4dad-45a6-9c95-8d075cfbcc4c"
+      }
     }
   }
 }

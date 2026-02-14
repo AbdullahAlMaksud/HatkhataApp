@@ -1,24 +1,20 @@
 import React, { useCallback, useState } from 'react';
-import {
-  Alert,
-  FlatList,
-  Pressable,
-  Text,
-  View,
-} from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { Alert, FlatList, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StyleSheet } from 'react-native-unistyles';
 
-import { Ionicons } from '@expo/vector-icons';
-import { useTranslation } from 'react-i18next';
-
-import { CreateTagModal } from '@/components/CreateTagModal';
-import { EmptyState } from '@/components/EmptyState';
-import { FAB } from '@/components/FAB';
+import {
+  CreateTagModal,
+  EmptyState,
+  FAB,
+  TagListItem,
+  TagsHeader,
+} from '@/components';
 import { useListStore, useTagStore } from '@/store';
 import type { Tag } from '@/types';
 
-export default function TagsScreen() {
+const TagsScreen = () => {
   const { t } = useTranslation('tags');
   const { t: tc } = useTranslation('common');
   const insets = useSafeAreaInsets();
@@ -35,7 +31,7 @@ export default function TagsScreen() {
 
   const getTagUsageCount = useCallback(
     (tagId: string) => lists.filter((l) => l.tagId === tagId).length,
-    [lists],
+    [lists]
   );
 
   const handleCreate = (name: string, color: string) => {
@@ -73,48 +69,25 @@ export default function TagsScreen() {
   const renderTag = ({ item }: { item: Tag }) => {
     const usageCount = getTagUsageCount(item.id);
     return (
-      <View style={styles.tagRow}>
-        <View style={[styles.colorDot, { backgroundColor: item.color }]} />
-        <View style={styles.tagInfo}>
-          <Text style={styles.tagName}>{item.name}</Text>
-          {usageCount > 0 && (
-            <Text style={styles.tagUsage}>{t('usedInLists', { count: usageCount })}</Text>
-          )}
-        </View>
-        <Pressable
-          style={styles.actionBtn}
-          onPress={() => {
-            setEditingTag(item);
-            setError(null);
-          }}
-          hitSlop={8}
-        >
-          <Ionicons name="pencil" size={16} color={styles.actionIcon.color} />
-        </Pressable>
-        <Pressable
-          style={styles.actionBtn}
-          onPress={() => handleDelete(item)}
-          hitSlop={8}
-        >
-          <Ionicons name="trash-outline" size={16} color={styles.deleteIcon.color} />
-        </Pressable>
-      </View>
+      <TagListItem
+        tag={item}
+        usageCount={usageCount}
+        usageText={usageCount > 0 ? t('usedInLists', { count: usageCount }) : undefined}
+        onEdit={() => {
+          setEditingTag(item);
+          setError(null);
+        }}
+        onDelete={() => handleDelete(item)}
+      />
     );
   };
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.title}>{t('title')}</Text>
-      </View>
+      <TagsHeader title={t('title')} />
 
       {tags.length === 0 ? (
-        <EmptyState
-          icon="pricetag-outline"
-          title={t('noTags')}
-          subtitle={t('noTagsSubtitle')}
-        />
+        <EmptyState icon="pricetag-outline" title={t('noTags')} subtitle={t('noTagsSubtitle')} />
       ) : (
         <FlatList
           data={tags}
@@ -126,10 +99,12 @@ export default function TagsScreen() {
         />
       )}
 
-      <FAB onPress={() => {
-        setError(null);
-        setShowModal(true);
-      }} />
+      <FAB
+        onPress={() => {
+          setError(null);
+          setShowModal(true);
+        }}
+      />
 
       <CreateTagModal
         visible={showModal}
@@ -154,60 +129,14 @@ const styles = StyleSheet.create((theme) => ({
     flex: 1,
     backgroundColor: theme.colors.background,
   },
-  header: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 12,
-  },
-  title: {
-    fontSize: theme.fontSize['3xl'],
-    color: theme.colors.text,
-    fontFamily: theme.fontFamily.bold,
-    textAlign: 'center',
-  },
   listContent: {
     paddingHorizontal: 20,
     paddingBottom: 100,
     paddingTop: 8,
   },
-  tagRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    backgroundColor: theme.colors.card,
-    borderRadius: theme.borderRadius.lg,
-    gap: 12,
-  },
-  colorDot: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-  },
-  tagInfo: {
-    flex: 1,
-  },
-  tagName: {
-    fontSize: theme.fontSize.md,
-    color: theme.colors.text,
-    fontFamily: theme.fontFamily.medium,
-  },
-  tagUsage: {
-    fontSize: theme.fontSize.xs,
-    color: theme.colors.textMuted,
-    fontFamily: theme.fontFamily.regular,
-    marginTop: 2,
-  },
-  actionBtn: {
-    padding: 8,
-  },
-  actionIcon: {
-    color: theme.colors.textMuted,
-  },
-  deleteIcon: {
-    color: theme.colors.destructive,
-  },
   separator: {
     height: 8,
   },
 }));
+
+export default TagsScreen;

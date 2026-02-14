@@ -35,7 +35,7 @@ interface CreateTagModalProps {
   error?: string | null;
 }
 
-export const CreateTagModal: React.FC<CreateTagModalProps> = ({
+const CreateTagModal: React.FC<CreateTagModalProps> = ({
   visible,
   onClose,
   onSubmit,
@@ -237,3 +237,5 @@ const styles = StyleSheet.create((theme, rt) => ({
     fontFamily: theme.fontFamily.medium,
   },
 }));
+
+export default CreateTagModal;

@@ -10,7 +10,7 @@ interface EmptyStateProps {
   subtitle?: string;
 }
 
-export const EmptyState: React.FC<EmptyStateProps> = ({
+const EmptyState: React.FC<EmptyStateProps> = ({
   icon = 'cart-outline',
   title,
   subtitle,
@@ -61,3 +61,5 @@ const styles = StyleSheet.create((theme) => ({
     lineHeight: 20,
   },
 }));
+
+export default EmptyState;

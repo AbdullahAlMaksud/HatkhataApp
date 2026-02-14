@@ -1,12 +1,16 @@
-import React from 'react';
+import React, { FC } from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
+import ReanimatedSwipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
 import { StyleSheet } from 'react-native-unistyles';
 
 import { Ionicons } from '@expo/vector-icons';
 
 import type { BazaarItem } from '@/types';
 
-interface BazaarItemRowProps {
+import { WithTheme, withUniTheme } from '@/styles/hoc/with-unistyles';
+import { formatCurrency, toLocalizedDigits } from '@/utils/calculations';
+
+interface BazaarItemRowProps extends WithTheme {
   item: BazaarItem;
   currencySymbol?: string;
   tagName?: string;
@@ -15,9 +19,11 @@ interface BazaarItemRowProps {
   onUpdate: (updates: Partial<Omit<BazaarItem, 'id'>>) => void;
   onDrag?: () => void;
   isDragging?: boolean;
+  isEditing?: boolean;
+  language?: string;
 }
 
-export const BazaarItemRow: React.FC<BazaarItemRowProps> = ({
+const BazaarItemRow: React.FC<BazaarItemRowProps> = ({
   item,
   currencySymbol = '৳',
   tagName,
@@ -26,74 +32,107 @@ export const BazaarItemRow: React.FC<BazaarItemRowProps> = ({
   onUpdate,
   onDrag,
   isDragging = false,
+  isEditing = false,
+  language = 'en',
+  theme
 }) => {
+  // ... (swipe actions remain same)
+
   return (
-    <View style={[styles.container, item.isChecked && styles.containerChecked, isDragging && styles.containerDragging]}>
-      {/* Drag Handle */}
-      {onDrag && !item.isChecked && (
-        <Pressable onLongPress={onDrag} delayLongPress={100} hitSlop={4}>
-          <Ionicons name="reorder-three-outline" size={20} color={styles.dragHandle.color} />
-        </Pressable>
-      )}
+    <ReanimatedSwipeable
+      // ... (props remain same)
+    >
+      <Pressable
+        onLongPress={onDrag}
+        delayLongPress={200}
+        
+        style={({ pressed }) => [
+          styles.container,
+          item.isChecked && styles.containerChecked,
+          (isDragging || pressed) && styles.containerDragging
+        ]}
+      >
 
-      {/* Checkbox */}
-      <Pressable onPress={onToggleCheck} style={styles.checkbox} hitSlop={8}>
-        {item.isChecked ? (
-          <Ionicons name="checkmark-circle" size={24} color={styles.checkedIcon.color} />
-        ) : (
-          <View style={styles.uncheckedCircle} />
-        )}
-      </Pressable>
-
-      {/* Item Info */}
-      <View style={styles.info}>
-        <Text
-          style={[styles.name, item.isChecked && styles.nameChecked]}
-          numberOfLines={1}
+         {/* Checkbox or Delete Button */}
+        <Pressable 
+          onPress={isEditing ? onDelete : onToggleCheck} 
+          style={styles.checkbox} 
+          hitSlop={8} 
+          disabled={false}
         >
-          {item.name}
-        </Text>
-        {tagName && (
-          <Text style={styles.tag} numberOfLines={1}>
-            {tagName}
-          </Text>
-        )}
-      </View>
+            {item.isChecked ? (
+              <Ionicons name="checkmark-circle" size={24} color={styles.checkedIcon.color} />
+            ) : (
+              <View style={styles.uncheckedCircle} />
+            )}
+        </Pressable>
+        {/* <Pressable onPressIn={onDrag} hitSlop={10} style={{ paddingRight: 8 }}>
+          <Ionicons name="reorder-two" size={24} color={styles.dragHandle.color} />
+        </Pressable> */}
 
-      {/* Quantity */}
-      {item.quantity ? (
-        <View style={styles.qtyContainer}>
+        <View style={styles.info}>
+          {isEditing ? (
+            <TextInput
+              style={styles.nameInput}
+              value={item.name}
+              onChangeText={(text) => onUpdate({ name: text })}
+              placeholder="Item name"
+            />
+          ) : (
+            <Text style={[styles.name, item.isChecked && styles.nameChecked]} numberOfLines={2}>
+              {item.name}
+            </Text>
+          )}
+          {tagName && <Text style={styles.tag}>{tagName}</Text>}
+        </View>
+
+        {/* Quantity */}
+        {(item.quantity || isEditing) ? (
+          <View style={styles.qtyContainer}>
+            {isEditing ? (
+              <TextInput
+                style={[styles.qtyInput, { minWidth: 40 }]}
+                value={item.quantity}
+                onChangeText={(text) => {
+                  onUpdate({ quantity: text });
+                }}
+                placeholder="Qty"
+                selectTextOnFocus
+              />
+            ) : (
+              <Text style={styles.qtyText}>
+                {toLocalizedDigits(item.quantity || '', language)}
+              </Text>
+            )}
+            {item.unit && <Text style={styles.unit}>{item.unit}</Text>}
+          </View>
+        ) : null}
+
+        {/* Price */}
+        {isEditing ? (
           <TextInput
-            style={styles.qtyInput}
-            value={item.quantity}
+            style={styles.priceInput}
+            value={item.price > 0 ? String(item.price) : ''}
+            placeholder={`${currencySymbol} 0`}
+            placeholderTextColor={styles.pricePlaceholder.color}
             onChangeText={(text) => {
-              onUpdate({ quantity: text });
+              const price = parseFloat(text) || 0;
+              onUpdate({ price });
             }}
+            keyboardType="numeric"
             selectTextOnFocus
           />
-          {item.unit && <Text style={styles.unit}>{item.unit}</Text>}
-        </View>
-      ) : null}
+        ) : (
+          <Text style={styles.priceText}>
+            {item.price > 0 ? formatCurrency(item.price, currencySymbol, language) : ''}
+          </Text>
+        )}
 
-      {/* Price — Editable */}
-      <TextInput
-        style={styles.priceInput}
-        value={item.price > 0 ? String(item.price) : ''}
-        placeholder={`${currencySymbol} 0`}
-        placeholderTextColor={styles.pricePlaceholder.color}
-        onChangeText={(text) => {
-          const price = parseFloat(text) || 0;
-          onUpdate({ price });
-        }}
-        keyboardType="numeric"
-        selectTextOnFocus
-      />
-
-      {/* Delete */}
-      <Pressable onPress={onDelete} hitSlop={8} style={styles.deleteBtn}>
-        <Ionicons name="close-circle-outline" size={18} color={styles.deleteIcon.color} />
+      {!isEditing && <Pressable onPress={onDelete} style={styles.deleteBtn} hitSlop={8} disabled={false}>
+          <Ionicons name="close" size={24} color={theme.colors.text} />
+       </Pressable>}
       </Pressable>
-    </View>
+    </ReanimatedSwipeable>
   );
 };
 
@@ -104,7 +143,7 @@ interface AddItemRowProps {
   onSubmit: (name: string, quantity?: string, price?: number) => void;
 }
 
-export const AddItemRow: React.FC<AddItemRowProps> = ({
+export const AddItemRow: FC<AddItemRowProps> = ({
   placeholder,
   currencySymbol = '৳',
   onSubmit,
@@ -126,9 +165,6 @@ export const AddItemRow: React.FC<AddItemRowProps> = ({
 
   return (
     <View style={styles.addContainer}>
-      <View style={styles.checkbox}>
-        <View style={styles.uncheckedCircleFaded} />
-      </View>
       <TextInput
         style={styles.addInput}
         placeholder={placeholder}
@@ -157,6 +193,10 @@ export const AddItemRow: React.FC<AddItemRowProps> = ({
         keyboardType="numeric"
         returnKeyType="done"
       />
+      {/* Checkbox Placeholder - Moved to Right */}
+      <View style={styles.checkbox}>
+        <View style={styles.uncheckedCircleFaded} />
+      </View>
     </View>
   );
 };
@@ -165,14 +205,39 @@ const styles = StyleSheet.create((theme) => ({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 16,
+    paddingVertical: theme.gap(3),
+    marginHorizontal: theme.gap(5),
+    paddingHorizontal: theme.gap(3),
+    marginBottom: theme.gap(3),
     backgroundColor: theme.colors.card,
     borderRadius: theme.borderRadius.lg,
-    marginBottom: 8,
     borderWidth: 1,
     borderColor: theme.colors.borderLight,
     gap: 10,
+  },
+  swipeContainer: {
+    marginBottom: 8,
+  },
+  swipeAction: {
+    width: 80,
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: theme.borderRadius.lg,
+  },
+  swipeLeft: {
+    backgroundColor: theme.colors.destructive,
+    marginRight: -10, // Overlap slightly
+  },
+  swipeRight: {
+    backgroundColor: theme.colors.success || '#10B981', // Fallback if success not in theme
+    marginLeft: -10,
+  },
+  swipeBtn: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   containerChecked: {
     opacity: 0.7,
@@ -217,6 +282,14 @@ const styles = StyleSheet.create((theme) => ({
     color: theme.colors.text,
     fontFamily: theme.fontFamily.semiBold,
   },
+  nameInput: {
+    fontSize: theme.fontSize.md,
+    color: theme.colors.text,
+    fontFamily: theme.fontFamily.semiBold,
+    padding: 0,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.borderLight,
+  },
   nameChecked: {
     textDecorationLine: 'line-through',
     color: theme.colors.textMuted,
@@ -243,6 +316,13 @@ const styles = StyleSheet.create((theme) => ({
     textAlign: 'center',
     padding: 0,
   },
+  qtyText: {
+    fontSize: theme.fontSize.base,
+    color: theme.colors.text,
+    fontFamily: theme.fontFamily.regular,
+    minWidth: 24,
+    textAlign: 'center',
+  },
   unit: {
     fontSize: theme.fontSize.xs,
     color: theme.colors.textMuted,
@@ -255,11 +335,18 @@ const styles = StyleSheet.create((theme) => ({
     textAlign: 'right',
     padding: 0,
   },
+  priceText: {
+    fontSize: theme.fontSize.base,
+    color: theme.colors.primary,
+    fontFamily: theme.fontFamily.semiBold,
+    minWidth: 60,
+    textAlign: 'right',
+  },
   pricePlaceholder: {
     color: theme.colors.textMuted,
   },
   deleteBtn: {
-    padding: 2,
+    padding: 0,
   },
   deleteIcon: {
     color: theme.colors.textMuted,
@@ -277,6 +364,9 @@ const styles = StyleSheet.create((theme) => ({
     borderStyle: 'dashed',
     gap: 10,
     opacity: 0.6,
+    marginHorizontal: theme.gap(5),
+
+    // marginTop: theme.gap(2),
   },
   addInput: {
     flex: 1,
@@ -308,3 +398,5 @@ const styles = StyleSheet.create((theme) => ({
     color: theme.colors.textMuted,
   },
 }));
+
+export default withUniTheme(BazaarItemRow);

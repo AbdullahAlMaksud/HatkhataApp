@@ -1,6 +1,8 @@
 import React from 'react';
-import { Pressable, Switch, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
+
+import CustomSwitch from './custom-switch';
 
 import { Ionicons } from '@expo/vector-icons';
 
@@ -24,7 +26,7 @@ interface SettingsToggleRowProps {
   onToggle: (value: boolean) => void;
 }
 
-export const SettingsRow: React.FC<SettingsRowProps> = ({
+const SettingsRow: React.FC<SettingsRowProps> = ({
   icon,
   iconColor,
   iconBgColor,
@@ -74,11 +76,11 @@ export const SettingsToggleRow: React.FC<SettingsToggleRowProps> = ({
         </View>
       )}
       <Text style={styles.label}>{label}</Text>
-      <Switch
+      <CustomSwitch
         value={value}
         onValueChange={onToggle}
-        trackColor={{ false: styles.switchTrack.backgroundColor, true: styles.switchTrackActive.backgroundColor }}
-        thumbColor="#FFFFFF"
+        activeColor={styles.switchTrackActive.backgroundColor}
+        inactiveColor={styles.switchTrack.backgroundColor}
       />
     </View>
   );
@@ -145,3 +147,5 @@ const styles = StyleSheet.create((theme) => ({
     paddingBottom: 8,
   },
 }));
+
+export default SettingsRow;

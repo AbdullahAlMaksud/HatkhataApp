@@ -1,23 +1,22 @@
+import * as FileSystem from 'expo-file-system';
+import { Paths } from 'expo-file-system';
+import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import {
-  Alert,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StyleSheet } from 'react-native-unistyles';
 
-import { Ionicons } from '@expo/vector-icons';
-import { useTranslation } from 'react-i18next';
-
-import { SettingsSectionHeader } from '@/components/SettingsRow';
+import {
+  AvatarSection,
+  ProfileField,
+  ProfileHeader,
+  SettingsSectionHeader,
+} from '@/components';
 import { useUserStore } from '@/store';
 
-export default function ProfileScreen() {
+const ProfileScreen = () => {
   const { t } = useTranslation('profile');
   const { t: tc } = useTranslation('common');
   const router = useRouter();
@@ -31,6 +30,40 @@ export default function ProfileScreen() {
   const [email, setEmail] = useState(profile.email || '');
   const [phone, setPhone] = useState(profile.phone || '');
   const [bio, setBio] = useState(profile.bio || '');
+  const [avatar, setAvatar] = useState(profile.avatar);
+
+  const handlePickImage = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (permissionResult.granted === false) {
+      Alert.alert('Permission to access camera roll is required!');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      const selectedUri = result.assets[0].uri;
+      try {
+        const fileName = selectedUri.split('/').pop();
+        const newPath = Paths.document + '/' + (fileName || 'avatar.jpg');
+        
+        await FileSystem.copyAsync({
+          from: selectedUri,
+          to: newPath,
+        });
+        
+        setAvatar(newPath);
+      } catch (error) {
+        setAvatar(selectedUri);
+      }
+    }
+  };
 
   const handleSave = () => {
     setProfile({
@@ -39,6 +72,7 @@ export default function ProfileScreen() {
       email: email.trim() || undefined,
       phone: phone.trim() || undefined,
       bio: bio.trim() || undefined,
+      avatar: avatar,
     });
     router.back();
   };
@@ -63,88 +97,59 @@ export default function ProfileScreen() {
       contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={false}
     >
-      {/* Header */}
-      <View style={styles.header}>
-        <Pressable onPress={() => router.back()} hitSlop={8}>
-          <Text style={styles.backText}>{'< Settings'}</Text>
-        </Pressable>
-        <Text style={styles.headerTitle}>{t('editProfile')}</Text>
-        <Pressable onPress={handleSave} hitSlop={8}>
-          <Text style={styles.saveBtn}>{tc('save')}</Text>
-        </Pressable>
-      </View>
+      <ProfileHeader
+        title={t('editProfile')}
+        onBack={() => router.back()}
+        onSave={handleSave}
+      />
 
-      {/* Avatar */}
-      <View style={styles.avatarSection}>
-        <View style={styles.avatar}>
-          <Ionicons name="person" size={40} color={styles.avatarIcon.color} />
-          <View style={styles.editBadge}>
-            <Ionicons name="pencil" size={12} color="#FFFFFF" />
-          </View>
-        </View>
-        <Text style={styles.changePhotoText}>{t('changePhoto')}</Text>
-      </View>
+      <AvatarSection
+        changePhotoText={t('changePhoto')}
+        imageUri={avatar}
+        onPress={handlePickImage}
+      />
 
       {/* Public Profile */}
       <SettingsSectionHeader title={t('publicProfile')} />
       <View style={styles.card}>
-        <View style={styles.fieldRow}>
-          <Text style={styles.fieldLabel}>{t('name')}</Text>
-          <TextInput
-            style={styles.fieldInput}
-            value={name}
-            onChangeText={setName}
-            placeholder="..."
-            placeholderTextColor={styles.placeholder.color}
-          />
-          {name.length > 0 && (
-            <Pressable onPress={() => setName('')}>
-              <Ionicons name="close-circle" size={18} color={styles.clearIcon.color} />
-            </Pressable>
-          )}
-        </View>
+        <ProfileField
+          label={t('name')}
+          value={name}
+          onChange={setName}
+          placeholder="..."
+          showClearButton
+          onClear={() => setName('')}
+        />
         <View style={styles.divider} />
-        <View style={styles.fieldRow}>
-          <Text style={styles.fieldLabel}>{t('username')}</Text>
-          <TextInput
-            style={styles.fieldInput}
-            value={username}
-            onChangeText={setUsername}
-            placeholder="@username"
-            placeholderTextColor={styles.placeholder.color}
-            autoCapitalize="none"
-          />
-        </View>
+        <ProfileField
+          label={t('username')}
+          value={username}
+          onChange={setUsername}
+          placeholder="@username"
+          autoCapitalize="none"
+        />
       </View>
       <Text style={styles.hint}>{t('usernameNote')}</Text>
 
       {/* Contact Info */}
       <SettingsSectionHeader title={t('contactInfo')} />
       <View style={styles.card}>
-        <View style={styles.fieldRow}>
-          <Text style={styles.fieldLabel}>{t('email')}</Text>
-          <TextInput
-            style={styles.fieldInput}
-            value={email}
-            onChangeText={setEmail}
-            placeholder="email@example.com"
-            placeholderTextColor={styles.placeholder.color}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
-        </View>
+        <ProfileField
+          label={t('email')}
+          value={email}
+          onChange={setEmail}
+          placeholder="email@example.com"
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
         <View style={styles.divider} />
-        <View style={styles.fieldRow}>
-          <Text style={styles.fieldLabel}>{t('phone')}</Text>
-          <TextInput
-            style={styles.fieldInput}
-            value={phone}
-            onChangeText={setPhone}
-            placeholder="+880 1XXX-XXXXXX"
-            placeholderTextColor={styles.placeholder.color}
-            keyboardType="phone-pad"
-          />
-        </View>
+        <ProfileField
+          label={t('phone')}
+          value={phone}
+          onChange={setPhone}
+          placeholder="+880 1XXX-XXXXXX"
+          keyboardType="phone-pad"
+        />
       </View>
 
       {/* Bio */}
@@ -179,92 +184,11 @@ const styles = StyleSheet.create((theme) => ({
   content: {
     paddingBottom: 20,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  backText: {
-    fontSize: theme.fontSize.base,
-    color: theme.colors.primary,
-  },
-  headerTitle: {
-    fontSize: theme.fontSize.lg,
-    color: theme.colors.text,
-    fontFamily: theme.fontFamily.bold,
-  },
-  saveBtn: {
-    fontSize: theme.fontSize.base,
-    color: theme.colors.primary,
-  },
-  // Avatar
-  avatarSection: {
-    alignItems: 'center',
-    paddingVertical: 20,
-  },
-  avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: '#FFE0B2',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  avatarIcon: {
-    color: '#F57C00',
-  },
-  editBadge: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: theme.colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: theme.colors.background,
-  },
-  changePhotoText: {
-    fontSize: theme.fontSize.sm,
-    color: theme.colors.primary,
-    marginTop: 10,
-  },
-  // Cards
   card: {
     backgroundColor: theme.colors.card,
     marginHorizontal: 16,
     borderRadius: theme.borderRadius.xl,
     overflow: 'hidden',
-  },
-  fieldRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    gap: 10,
-  },
-  fieldLabel: {
-    fontSize: theme.fontSize.base,
-    color: theme.colors.text,
-    fontFamily: theme.fontFamily.semiBold,
-    minWidth: 80,
-  },
-  fieldInput: {
-    flex: 1,
-    fontSize: theme.fontSize.base,
-    color: theme.colors.text,
-    fontFamily: theme.fontFamily.regular,
-    padding: 0,
-  },
-  placeholder: {
-    color: theme.colors.textMuted,
-  },
-  clearIcon: {
-    color: theme.colors.textMuted,
   },
   divider: {
     height: 1,
@@ -287,6 +211,9 @@ const styles = StyleSheet.create((theme) => ({
     minHeight: 80,
     textAlignVertical: 'top',
   },
+  placeholder: {
+    color: theme.colors.textMuted,
+  },
   deleteBtn: {
     marginHorizontal: 16,
     marginTop: 30,
@@ -302,3 +229,5 @@ const styles = StyleSheet.create((theme) => ({
     color: theme.colors.destructive,
   },
 }));
+
+export default ProfileScreen;

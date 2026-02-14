@@ -22,6 +22,7 @@
   "deleteList": "Delete List",
   "deleteListConfirm": "Are you sure you want to delete this list?",
   "deleteItem": "Delete Item",
+  "deleteItemConfirm": "Are you sure you want to delete this item?",
   "pinNote": "Pin Note",
   "unpinNote": "Unpin Note",
   "checklistItems": "Items",

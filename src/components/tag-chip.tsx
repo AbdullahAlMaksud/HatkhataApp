@@ -11,7 +11,7 @@ interface TagChipProps {
   style?: ViewStyle;
 }
 
-export const TagChip: React.FC<TagChipProps> = ({
+const TagChip: React.FC<TagChipProps> = ({
   name,
   color,
   isSelected = false,
@@ -91,3 +91,5 @@ const styles = StyleSheet.create((theme) => ({
     fontFamily: theme.fontFamily.semiBold,
   },
 }));
+
+export default TagChip;

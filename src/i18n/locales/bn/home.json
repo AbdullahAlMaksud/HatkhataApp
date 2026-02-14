@@ -1,6 +1,6 @@
 {
   "greeting": "স্বাগতম",
-  "title": "বাজারের তালিকা",
+  "title": "হাট খাতা",
   "subtitle": "আপনার কেনাকাটার তালিকা",
   "emptyTitle": "কোনো তালিকা নেই",
   "emptySubtitle": "নতুন তালিকা তৈরি করুন",
@@ -12,5 +12,10 @@
   "sortOldest": "পুরনো",
   "sortCategory": "ক্যাটেগরি",
   "pinned": "পিন করা হয়েছে",
-  "unpinned": "আনপিন করা হয়েছে"
+  "unpinned": "আনপিন করা হয়েছে",
+  "filterAndSort": "ফিল্টার এবং সোর্ট",
+  "sortBy": "সাজানোর মাধ্যম",
+  "sortAlphabetical": "নাম (অ-ক্ষ)",
+  "categories": "ক্যাটেগরি সমূহ",
+  "clearAll": "সব মুছুন"
 }

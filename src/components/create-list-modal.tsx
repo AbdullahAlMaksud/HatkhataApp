@@ -45,7 +45,7 @@ const createEmptyItem = (): ChecklistItem => ({
   price: 0,
 });
 
-export const CreateListModal: React.FC<CreateListModalProps> = ({
+const CreateListModal: React.FC<CreateListModalProps> = ({
   visible,
   onClose,
   onSubmit,
@@ -456,3 +456,5 @@ const styles = StyleSheet.create((theme, rt) => ({
     fontFamily: theme.fontFamily.semiBold,
   },
 }));
+
+export default CreateListModal;
