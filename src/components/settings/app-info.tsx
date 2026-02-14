@@ -49,21 +49,22 @@ const styles = StyleSheet.create((theme) => ({
     color: '#FFFFFF',
   },
   appInfoName: {
-    fontSize: theme.fontSize.md,
+    fontSize: theme.fontSize.lg,
     color: theme.colors.primary,
     fontFamily: theme.fontFamily.bold,
   },
   appInfoVersion: {
-    fontSize: theme.fontSize.xs,
+    fontSize: theme.fontSize.sm,
     color: theme.colors.textMuted,
     marginTop: 2,
   },
   appInfoMade: {
-    fontSize: theme.fontSize.xs,
-    color: theme.colors.urgent,
-    marginTop: theme.gap(2),
-    textDecorationLine: 'underline',
-    cursor: 'pointer',
+    fontSize: theme.fontSize.sm,
+    color: theme.colors.tagTeal,
+    // marginTop: theme.gap(2),
+    lineHeight: theme.fontSize.xs * 1.4,
+    // textDecorationLine: 'underline',
+    // cursor: 'pointer',
   },
 }));
 

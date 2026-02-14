@@ -254,7 +254,7 @@ const SettingsScreen:FC<WithTheme> = ({theme, rt}) => {
 
       <AppInfo
         appName={t('app-name')}
-        version={t('version', { version: toLocalizedDigits('1.2.0', settings.language), build: toLocalizedDigits('45', settings.language) })}
+        version={t('version', { version: toLocalizedDigits('1.0.1', settings.language), build: toLocalizedDigits('46', settings.language) })}
         madeWith={t('madeWith')}
       />
 
