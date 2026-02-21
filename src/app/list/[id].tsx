@@ -2,7 +2,7 @@ import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import DraggableFlatList, {
   type RenderItemParams,
   ScaleDecorator,
@@ -20,9 +20,14 @@ import {
   ListTitleSection,
   TotalFooter,
 } from '@/components';
+import ConfirmModal from '@/components/confirm-modal';
 import { useListStore, useSettingsStore, useTagStore } from '@/store';
 import type { BazaarItem } from '@/types';
-import { calculateListTotal, formatCurrency, sortItemsByOrder } from '@/utils/calculations';
+import {
+  calculateListTotal,
+  formatCurrency,
+  sortItemsByOrder,
+} from '@/utils/calculations';
 
 const ListDetailScreen = () => {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -31,74 +36,74 @@ const ListDetailScreen = () => {
   const { t: tc } = useTranslation('common');
   const insets = useSafeAreaInsets();
 
-  const list = useListStore((s) => s.getListById(id));
-  const addItem = useListStore((s) => s.addItem);
-  const updateItem = useListStore((s) => s.updateItem);
-  const deleteItem = useListStore((s) => s.deleteItem);
-  const toggleItemCheck = useListStore((s) => s.toggleItemCheck);
-  const clearCheckedItems = useListStore((s) => s.clearCheckedItems);
-  const deleteList = useListStore((s) => s.deleteList);
-  const updateList = useListStore((s) => s.updateList);
-  const reorderItems = useListStore((s) => s.reorderItems);
-  const getTagById = useTagStore((s) => s.getTagById);
-  const currencySymbol = useSettingsStore((s) => s.currencySymbol);
-  const moveCompletedToBottom = useSettingsStore((s) => s.moveCompletedToBottom);
-  const showTotalPrice = useSettingsStore((s) => s.showTotalPrice);
-  const hapticFeedback = useSettingsStore((s) => s.hapticFeedback);
-  const language = useSettingsStore((s) => s.language);
+  const list = useListStore(s => s.getListById(id));
+  const addItem = useListStore(s => s.addItem);
+  const updateItem = useListStore(s => s.updateItem);
+  const deleteItem = useListStore(s => s.deleteItem);
+  const toggleItemCheck = useListStore(s => s.toggleItemCheck);
+  const clearCheckedItems = useListStore(s => s.clearCheckedItems);
+  const deleteList = useListStore(s => s.deleteList);
+  const updateList = useListStore(s => s.updateList);
+  const reorderItems = useListStore(s => s.reorderItems);
+  const getTagById = useTagStore(s => s.getTagById);
+  const currencySymbol = useSettingsStore(s => s.currencySymbol);
+  const moveCompletedToBottom = useSettingsStore(s => s.moveCompletedToBottom);
+  const showTotalPrice = useSettingsStore(s => s.showTotalPrice);
+  const hapticFeedback = useSettingsStore(s => s.hapticFeedback);
+  const language = useSettingsStore(s => s.language);
+
+  const tags = useTagStore(s => s.tags);
 
   // Replaced showEditModal with isEditing
   const [isEditing, setIsEditing] = useState(false);
-
-  if (!list) {
-    return (
-      <View style={[styles.container, { paddingTop: insets.top }]}>
-        <Text style={styles.notFound}>List not found</Text>
-      </View>
-    );
-  }
+  const [confirmModal, setConfirmModal] = useState<{
+    visible: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  }>({ visible: false, title: '', message: '', onConfirm: () => {} });
 
   const sortedItems = useMemo(
-    () => sortItemsByOrder(list.items, moveCompletedToBottom),
-    [list.items, moveCompletedToBottom]
+    () => (list ? sortItemsByOrder(list.items, moveCompletedToBottom) : []),
+    [list?.items, moveCompletedToBottom],
   );
-  const uncheckedItems = sortedItems.filter((i) => !i.isChecked);
-  const checkedItems = sortedItems.filter((i) => i.isChecked);
-  const total = useMemo(() => calculateListTotal(list.items), [list.items]);
-  const createdDate = new Date(list.createdAt).toLocaleDateString(language === 'bn' ? 'bn-BD' : 'en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  });
-
-  const handleAddItem = (name: string, quantity?: string, price?: number) => {
-    addItem(id, name, undefined, quantity, undefined, price);
-  };
-
-  const handleDeleteList = () => {
-    Alert.alert(t('deleteList'), t('deleteListConfirm'), [
-      { text: tc('cancel'), style: 'cancel' },
+  const uncheckedItems = sortedItems.filter(i => !i.isChecked);
+  const checkedItems = sortedItems.filter(i => i.isChecked);
+  const total = useMemo(
+    () => (list ? calculateListTotal(list.items) : 0),
+    [list?.items],
+  );
+  const createdDate = useMemo(() => {
+    if (!list) return '';
+    return new Date(list.createdAt).toLocaleDateString(
+      language === 'bn' ? 'bn-BD' : 'en-US',
       {
-        text: tc('delete'),
-        style: 'destructive',
-        onPress: () => {
-          deleteList(id);
-          router.back();
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      },
+    );
+  }, [list?.createdAt, language]);
+
+  const closeConfirmModal = useCallback(
+    () => setConfirmModal(prev => ({ ...prev, visible: false })),
+    [],
+  );
+
+  const handleDeleteItem = useCallback(
+    (itemId: string) => {
+      setConfirmModal({
+        visible: true,
+        title: t('deleteItem'),
+        message: t('deleteItemConfirm'),
+        onConfirm: () => {
+          setConfirmModal(prev => ({ ...prev, visible: false }));
+          deleteItem(id, itemId);
         },
-      },
-    ]);
-  };
-
-  const handleDeleteItem = (itemId: string) => {
-    Alert.alert(tc('delete'), t('deleteItemConfirm'), [
-      { text: tc('cancel'), style: 'cancel' },
-      {
-        text: tc('delete'),
-        style: 'destructive',
-        onPress: () => deleteItem(id, itemId),
-      },
-    ]);
-  };
+      });
+    },
+    [id, deleteItem, t],
+  );
 
   const handleDragEnd = useCallback(
     ({ data }: { data: BazaarItem[] }) => {
@@ -107,7 +112,7 @@ const ListDetailScreen = () => {
       }
       reorderItems(id, data);
     },
-    [id, reorderItems, hapticFeedback]
+    [id, reorderItems, hapticFeedback],
   );
 
   const renderItem = useCallback(
@@ -126,7 +131,7 @@ const ListDetailScreen = () => {
               toggleItemCheck(id, item.id);
             }}
             onDelete={() => handleDeleteItem(item.id)}
-            onUpdate={(updates) => updateItem(id, item.id, updates)}
+            onUpdate={updates => updateItem(id, item.id, updates)}
             onDrag={() => {
               if (hapticFeedback) {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -140,10 +145,45 @@ const ListDetailScreen = () => {
         </ScaleDecorator>
       );
     },
-    [currencySymbol, hapticFeedback, toggleItemCheck, deleteItem, updateItem, getTagById, id, isEditing]
+    [
+      currencySymbol,
+      hapticFeedback,
+      toggleItemCheck,
+      handleDeleteItem,
+      updateItem,
+      getTagById,
+      id,
+      isEditing,
+      language,
+    ],
   );
 
+  if (!list) {
+    return (
+      <View style={[styles.container, { paddingTop: insets.top }]}>
+        <Text style={styles.notFound}>List not found</Text>
+      </View>
+    );
+  }
+
   const listData = moveCompletedToBottom ? uncheckedItems : sortedItems;
+
+  const handleAddItem = (name: string, quantity?: string, price?: number) => {
+    addItem(id, name, undefined, quantity, undefined, price);
+  };
+
+  const handleDeleteList = () => {
+    setConfirmModal({
+      visible: true,
+      title: t('deleteList'),
+      message: t('deleteListConfirm'),
+      onConfirm: () => {
+        setConfirmModal(prev => ({ ...prev, visible: false }));
+        deleteList(id);
+        router.back();
+      },
+    });
+  };
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -157,7 +197,7 @@ const ListDetailScreen = () => {
         <DraggableFlatList
           data={listData}
           renderItem={renderItem}
-          keyExtractor={(item) => item.id}
+          keyExtractor={item => item.id}
           onDragEnd={handleDragEnd}
           showsVerticalScrollIndicator={false}
           activationDistance={10}
@@ -166,12 +206,19 @@ const ListDetailScreen = () => {
               title={list.title}
               date={createdDate}
               isEditing={isEditing}
-              onChangeTitle={(text) => updateList(id, { title: text })}
+              onChangeTitle={text => updateList(id, { title: text })}
+              tag={list.tagId ? getTagById(list.tagId) : undefined}
+              tags={tags}
+              selectedTagId={list.tagId}
+              onChangeTag={tagId => updateList(id, { tagId })}
+              isUrgent={list.isUrgent}
+              onToggleUrgent={value => updateList(id, { isUrgent: value })}
+              urgentLabel={t('urgent')}
             />
           }
-          renderScrollComponent={(props) => (
-            <KeyboardAwareScrollView 
-              {...props} 
+          renderScrollComponent={props => (
+            <KeyboardAwareScrollView
+              {...props}
               contentContainerStyle={styles.listContent}
             />
           )}
@@ -193,7 +240,7 @@ const ListDetailScreen = () => {
                   clearAllText={tc('clearAll')}
                   onClearAll={() => clearCheckedItems(id)}
                   language={language}
-                  renderItem={(item) => {
+                  renderItem={item => {
                     const tag = item.tagId ? getTagById(item.tagId) : undefined;
                     return (
                       <BazaarItemRow
@@ -203,7 +250,7 @@ const ListDetailScreen = () => {
                         tagName={tag?.name}
                         onToggleCheck={() => toggleItemCheck(id, item.id)}
                         onDelete={() => handleDeleteItem(item.id)}
-                        onUpdate={(updates) => updateItem(id, item.id, updates)}
+                        onUpdate={updates => updateItem(id, item.id, updates)}
                         isEditing={isEditing}
                         language={language}
                       />
@@ -230,17 +277,29 @@ const ListDetailScreen = () => {
       <FAB
         onPress={() => setIsEditing(!isEditing)}
         icon={isEditing ? 'checkmark-outline' : 'create-outline'}
-        style={{ bottom: showTotalPrice ? insets.bottom + 100 : insets.bottom + 14 }}
+        style={{
+          bottom: showTotalPrice ? insets.bottom + 100 : insets.bottom + 14,
+        }}
+      />
+
+      <ConfirmModal
+        visible={confirmModal.visible}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmText={tc('delete')}
+        cancelText={tc('cancel')}
+        variant="destructive"
+        onConfirm={confirmModal.onConfirm}
+        onCancel={closeConfirmModal}
       />
     </View>
   );
-}
+};
 
-const styles = StyleSheet.create((theme) => ({
+const styles = StyleSheet.create(theme => ({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
-
   },
   notFound: {
     fontSize: theme.fontSize.md,

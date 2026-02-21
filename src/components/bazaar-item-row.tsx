@@ -21,6 +21,7 @@ interface BazaarItemRowProps extends WithTheme {
   isDragging?: boolean;
   isEditing?: boolean;
   language?: string;
+  isHorizontalMargin?: boolean;
 }
 
 const BazaarItemRow: React.FC<BazaarItemRowProps> = ({
@@ -34,37 +35,38 @@ const BazaarItemRow: React.FC<BazaarItemRowProps> = ({
   isDragging = false,
   isEditing = false,
   language = 'en',
-  theme
+  theme,
+  isHorizontalMargin = true,
 }) => {
   // ... (swipe actions remain same)
 
   return (
     <ReanimatedSwipeable
-      // ... (props remain same)
+    // ... (props remain same)
     >
       <Pressable
         onLongPress={onDrag}
         delayLongPress={200}
-        
         style={({ pressed }) => [
-          styles.container,
+          styles.container(isHorizontalMargin),
           item.isChecked && styles.containerChecked,
-          (isDragging || pressed) && styles.containerDragging
-        ]}
-      >
-
-         {/* Checkbox or Delete Button */}
-        <Pressable 
-          onPress={isEditing ? onDelete : onToggleCheck} 
-          style={styles.checkbox} 
-          hitSlop={8} 
-          disabled={false}
-        >
-            {item.isChecked ? (
-              <Ionicons name="checkmark-circle" size={24} color={styles.checkedIcon.color} />
-            ) : (
-              <View style={styles.uncheckedCircle} />
-            )}
+          (isDragging || pressed) && styles.containerDragging,
+        ]}>
+        {/* Checkbox or Delete Button */}
+        <Pressable
+          onPress={isEditing ? onDelete : onToggleCheck}
+          style={styles.checkbox}
+          hitSlop={8}
+          disabled={false}>
+          {item.isChecked ? (
+            <Ionicons
+              name="checkmark-circle"
+              size={24}
+              color={styles.checkedIcon.color}
+            />
+          ) : (
+            <View style={styles.uncheckedCircle} />
+          )}
         </Pressable>
         {/* <Pressable onPressIn={onDrag} hitSlop={10} style={{ paddingRight: 8 }}>
           <Ionicons name="reorder-two" size={24} color={styles.dragHandle.color} />
@@ -75,11 +77,13 @@ const BazaarItemRow: React.FC<BazaarItemRowProps> = ({
             <TextInput
               style={styles.nameInput}
               value={item.name}
-              onChangeText={(text) => onUpdate({ name: text })}
+              onChangeText={text => onUpdate({ name: text })}
               placeholder="Item name"
             />
           ) : (
-            <Text style={[styles.name, item.isChecked && styles.nameChecked]} numberOfLines={2}>
+            <Text
+              style={[styles.name, item.isChecked && styles.nameChecked]}
+              numberOfLines={2}>
               {item.name}
             </Text>
           )}
@@ -87,13 +91,13 @@ const BazaarItemRow: React.FC<BazaarItemRowProps> = ({
         </View>
 
         {/* Quantity */}
-        {(item.quantity || isEditing) ? (
+        {item.quantity || isEditing ? (
           <View style={styles.qtyContainer}>
             {isEditing ? (
               <TextInput
                 style={[styles.qtyInput, { minWidth: 40 }]}
                 value={item.quantity}
-                onChangeText={(text) => {
+                onChangeText={text => {
                   onUpdate({ quantity: text });
                 }}
                 placeholder="Qty"
@@ -115,7 +119,7 @@ const BazaarItemRow: React.FC<BazaarItemRowProps> = ({
             value={item.price > 0 ? String(item.price) : ''}
             placeholder={`${currencySymbol} 0`}
             placeholderTextColor={styles.pricePlaceholder.color}
-            onChangeText={(text) => {
+            onChangeText={text => {
               const price = parseFloat(text) || 0;
               onUpdate({ price });
             }}
@@ -124,13 +128,21 @@ const BazaarItemRow: React.FC<BazaarItemRowProps> = ({
           />
         ) : (
           <Text style={styles.priceText}>
-            {item.price > 0 ? formatCurrency(item.price, currencySymbol, language) : ''}
+            {item.price > 0
+              ? formatCurrency(item.price, currencySymbol, language)
+              : ''}
           </Text>
         )}
 
-      {!isEditing && <Pressable onPress={onDelete} style={styles.deleteBtn} hitSlop={8} disabled={false}>
-          <Ionicons name="close" size={24} color={theme.colors.text} />
-       </Pressable>}
+        {isEditing && (
+          <Pressable
+            onPress={onDelete}
+            style={styles.deleteBtn}
+            hitSlop={8}
+            disabled={false}>
+            <Ionicons name="close" size={24} color={theme.colors.text} />
+          </Pressable>
+        )}
       </Pressable>
     </ReanimatedSwipeable>
   );
@@ -201,12 +213,12 @@ export const AddItemRow: FC<AddItemRowProps> = ({
   );
 };
 
-const styles = StyleSheet.create((theme) => ({
-  container: {
+const styles = StyleSheet.create(theme => ({
+  container: withHorizontalMargin => ({
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: theme.gap(3),
-    marginHorizontal: theme.gap(5),
+    marginHorizontal: withHorizontalMargin ? theme.gap(5) : 0,
     paddingHorizontal: theme.gap(3),
     marginBottom: theme.gap(3),
     backgroundColor: theme.colors.card,
@@ -214,7 +226,7 @@ const styles = StyleSheet.create((theme) => ({
     borderWidth: 1,
     borderColor: theme.colors.borderLight,
     gap: 10,
-  },
+  }),
   swipeContainer: {
     marginBottom: 8,
   },
@@ -246,7 +258,13 @@ const styles = StyleSheet.create((theme) => ({
     opacity: 0.9,
     backgroundColor: '#F0FFF4',
     borderColor: '#38A169',
-    ...({ shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 8, elevation: 6 }),
+    ...{
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.15,
+      shadowRadius: 8,
+      elevation: 6,
+    },
   },
   dragHandle: {
     color: theme.colors.textMuted,

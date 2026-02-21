@@ -36,12 +36,12 @@ const CompletedSection: FC<CompletedSectionProps> = ({
           <Text style={styles.clearAllText}>{clearAllText}</Text>
         </Pressable>
       </View>
-      {items.map((item) => renderItem(item))}
+      {items.map(item => renderItem(item))}
     </View>
   );
 };
 
-const styles = StyleSheet.create((theme) => ({
+const styles = StyleSheet.create(theme => ({
   completedSection: {
     marginTop: 20,
   },
@@ -50,6 +50,7 @@ const styles = StyleSheet.create((theme) => ({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 10,
+    paddingHorizontal: 20,
   },
   completedTitle: {
     fontSize: theme.fontSize.base,
