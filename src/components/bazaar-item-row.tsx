@@ -14,10 +14,12 @@ interface BazaarItemRowProps extends WithTheme {
   item: BazaarItem;
   currencySymbol?: string;
   tagName?: string;
+  onPress?: () => void;
   onToggleCheck: () => void;
   onDelete: () => void;
   onUpdate: (updates: Partial<Omit<BazaarItem, 'id'>>) => void;
   onDrag?: () => void;
+  onInputFocus?: () => void;
   isDragging?: boolean;
   isEditing?: boolean;
   language?: string;
@@ -28,10 +30,12 @@ const BazaarItemRow: React.FC<BazaarItemRowProps> = ({
   item,
   currencySymbol = '৳',
   tagName,
+  onPress,
   onToggleCheck,
   onDelete,
   onUpdate,
   onDrag,
+  onInputFocus,
   isDragging = false,
   isEditing = false,
   language = 'en',
@@ -45,16 +49,18 @@ const BazaarItemRow: React.FC<BazaarItemRowProps> = ({
     // ... (props remain same)
     >
       <Pressable
+        onPress={onPress}
         onLongPress={onDrag}
         delayLongPress={200}
         style={({ pressed }) => [
           styles.container(isHorizontalMargin),
           item.isChecked && styles.containerChecked,
+          isEditing && styles.containerEditing,
           (isDragging || pressed) && styles.containerDragging,
         ]}>
-        {/* Checkbox or Delete Button */}
+        {/* Checkbox */}
         <Pressable
-          onPress={isEditing ? onDelete : onToggleCheck}
+          onPress={onToggleCheck}
           style={styles.checkbox}
           hitSlop={8}
           disabled={false}>
@@ -79,6 +85,7 @@ const BazaarItemRow: React.FC<BazaarItemRowProps> = ({
               value={item.name}
               onChangeText={text => onUpdate({ name: text })}
               placeholder="Item name"
+              onFocus={onInputFocus}
             />
           ) : (
             <Text
@@ -102,6 +109,7 @@ const BazaarItemRow: React.FC<BazaarItemRowProps> = ({
                 }}
                 placeholder="Qty"
                 selectTextOnFocus
+                onFocus={onInputFocus}
               />
             ) : (
               <Text style={styles.qtyText}>
@@ -125,6 +133,7 @@ const BazaarItemRow: React.FC<BazaarItemRowProps> = ({
             }}
             keyboardType="numeric"
             selectTextOnFocus
+            onFocus={onInputFocus}
           />
         ) : (
           <Text style={styles.priceText}>
@@ -153,12 +162,14 @@ interface AddItemRowProps {
   placeholder: string;
   currencySymbol?: string;
   onSubmit: (name: string, quantity?: string, price?: number) => void;
+  onInputFocus?: () => void;
 }
 
 export const AddItemRow: FC<AddItemRowProps> = ({
   placeholder,
   currencySymbol = '৳',
   onSubmit,
+  onInputFocus,
 }) => {
   const [name, setName] = React.useState('');
   const [quantity, setQuantity] = React.useState('');
@@ -185,6 +196,7 @@ export const AddItemRow: FC<AddItemRowProps> = ({
         onChangeText={setName}
         onSubmitEditing={handleSubmit}
         returnKeyType="next"
+        onFocus={onInputFocus}
       />
       <TextInput
         style={styles.addQtyInput}
@@ -194,6 +206,7 @@ export const AddItemRow: FC<AddItemRowProps> = ({
         onChangeText={setQuantity}
         onSubmitEditing={handleSubmit}
         returnKeyType="next"
+        onFocus={onInputFocus}
       />
       <TextInput
         style={styles.addPriceInput}
@@ -204,6 +217,7 @@ export const AddItemRow: FC<AddItemRowProps> = ({
         onSubmitEditing={handleSubmit}
         keyboardType="numeric"
         returnKeyType="done"
+        onFocus={onInputFocus}
       />
       {/* Checkbox Placeholder - Moved to Right */}
       <View style={styles.checkbox}>
@@ -253,6 +267,10 @@ const styles = StyleSheet.create(theme => ({
   },
   containerChecked: {
     opacity: 0.7,
+  },
+  containerEditing: {
+    borderColor: theme.colors.primary,
+    borderWidth: 1.5,
   },
   containerDragging: {
     opacity: 0.9,

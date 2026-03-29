@@ -1,9 +1,5 @@
-export * from './home';
-export * from './list-detail';
-export * from './onboarding';
-export * from './profile';
-export * from './settings';
-export * from './tags';
+// Shared / Global components only
+// Screen-specific components are under screens/<name>/components/
 
 export { AddItemRow, default as BazaarItemRow } from './bazaar-item-row';
 export { default as BazaarListCard } from './bazaar-list-card';
