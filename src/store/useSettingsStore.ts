@@ -1,15 +1,15 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import i18next from 'i18next';
+import i18next, { changeLanguage as changeI18nextLanguage } from 'i18next';
 import { UnistylesRuntime } from 'react-native-unistyles';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
+import { sqliteStateStorage } from './persist-storage';
 import { getFontFamily } from '@/styles/theme/base-theme';
 import type { FontFamily, Settings, ThemeMode } from '@/types';
 
 const changeLanguage = (lang: string) => {
   if (i18next.isInitialized) {
-    i18next.changeLanguage(lang);
+    changeI18nextLanguage(lang);
   }
 };
 
@@ -81,7 +81,17 @@ export const useSettingsStore = create<SettingsState>()(
     }),
     {
       name: 'bazaar-settings',
-      storage: createJSONStorage(() => AsyncStorage),
+      storage: createJSONStorage(() => sqliteStateStorage),
+      partialize: (state) => ({
+        themeMode: state.themeMode,
+        language: state.language,
+        fontFamily: state.fontFamily,
+        currency: state.currency,
+        currencySymbol: state.currencySymbol,
+        showTotalPrice: state.showTotalPrice,
+        moveCompletedToBottom: state.moveCompletedToBottom,
+        hapticFeedback: state.hapticFeedback,
+      }),
     },
   ),
 );

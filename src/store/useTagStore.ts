@@ -1,46 +1,66 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
+import { normalizeTag, normalizeTags, createDefaultTags } from './normalizers';
+import { sqliteStateStorage } from './persist-storage';
 import type { Tag } from '@/types';
-
-const DEFAULT_TAGS: Tag[] = [
-  { id: 'tag-grocery', name: 'Grocery', color: '#34C759' },
-  { id: 'tag-bazaar', name: 'Bazaar', color: '#3B82F6' },
-  { id: 'tag-essentials', name: 'Essentials', color: '#F59E0B' },
-  { id: 'tag-vegetables', name: 'Vegetables', color: '#14B8A6' },
-  { id: 'tag-fruits', name: 'Fruits', color: '#EC4899' },
-  { id: 'tag-fish', name: 'Fish', color: '#8B5CF6' },
-  { id: 'tag-meat', name: 'Meat', color: '#EF4444' },
-];
+import { createEntityId } from '@/utils/id';
 
 interface TagState {
   tags: Tag[];
   addTag: (name: string, color: string) => string | null;
   updateTag: (id: string, updates: Partial<Omit<Tag, 'id'>>) => boolean;
   deleteTag: (id: string) => void;
+  replaceAllTags: (tags: Tag[]) => void;
   getTagById: (id: string) => Tag | undefined;
   isDuplicateName: (name: string, excludeId?: string) => boolean;
+}
+
+interface PersistedTagState {
+  tags?: Tag[];
 }
 
 export const useTagStore = create<TagState>()(
   persist(
     (set, get) => ({
-      tags: DEFAULT_TAGS,
+      tags: createDefaultTags(),
 
       addTag: (name, color) => {
         if (get().isDuplicateName(name)) return null;
-        const id = `tag-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-        const newTag: Tag = { id, name, color };
+        const now = new Date().toISOString();
+        const id = createEntityId('tag');
+        const newTag = normalizeTag(
+          {
+            id,
+            name,
+            color,
+            createdAt: now,
+            updatedAt: now,
+            syncStatus: 'pending',
+          },
+          get().tags.length,
+        );
         set((state) => ({ tags: [...state.tags, newTag] }));
         return id;
       },
 
       updateTag: (id, updates) => {
         if (updates.name && get().isDuplicateName(updates.name, id)) return false;
+        const now = new Date().toISOString();
         set((state) => ({
           tags: state.tags.map((tag) =>
-            tag.id === id ? { ...tag, ...updates } : tag,
+            tag.id === id
+              ? normalizeTag(
+                  {
+                    ...tag,
+                    ...updates,
+                    updatedAt: now,
+                    syncStatus: 'pending',
+                    lastSyncedAt: undefined,
+                  },
+                  state.tags.findIndex((item) => item.id === id),
+                )
+              : tag,
           ),
         }));
         return true;
@@ -50,6 +70,10 @@ export const useTagStore = create<TagState>()(
         set((state) => ({
           tags: state.tags.filter((tag) => tag.id !== id),
         }));
+      },
+
+      replaceAllTags: (tags) => {
+        set({ tags: normalizeTags(tags, false) });
       },
 
       getTagById: (id) => {
@@ -65,7 +89,12 @@ export const useTagStore = create<TagState>()(
     }),
     {
       name: 'bazaar-tags',
-      storage: createJSONStorage(() => AsyncStorage),
+      version: 2,
+      storage: createJSONStorage(() => sqliteStateStorage),
+      partialize: (state) => ({ tags: state.tags }),
+      migrate: (persistedState) => ({
+        tags: normalizeTags((persistedState as PersistedTagState | undefined)?.tags),
+      }),
     },
   ),
 );

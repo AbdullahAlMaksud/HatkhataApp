@@ -15,6 +15,7 @@ SplashScreen.preventAutoHideAsync();
 
 const RootLayout = () => {
   const isOnboarded = useUserStore(s => s.isOnboarded);
+  const hasHydrated = useUserStore(s => s.hasHydrated);
 
   const [fontsLoaded] = useFonts(FONT_ASSETS);
 
@@ -24,14 +25,12 @@ const RootLayout = () => {
     }
   }, [fontsLoaded]);
 
-  if (!fontsLoaded) {
+  if (!fontsLoaded || !hasHydrated) {
     return null;
   }
-  const offset = { closed: 0, opened: 20 };
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <KeyboardProvider>
-        {/* <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding" keyboardVerticalOffset={offset.opened}> */}
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="onboarding" />
           <Stack.Screen name="main" />

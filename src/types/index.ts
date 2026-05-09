@@ -4,7 +4,16 @@ export type ThemeMode = 'light' | 'dark' | 'system';
 
 export type FontFamily = 'HindSiliguri' | 'AnekBangla' | 'NotoSerifBengali' | 'July';
 
-export interface BazaarItem {
+export type SyncStatus = 'pending' | 'synced' | 'failed';
+
+export interface SyncableEntity {
+  createdAt: string;
+  updatedAt: string;
+  syncStatus: SyncStatus;
+  lastSyncedAt?: string;
+}
+
+export interface BazaarItem extends SyncableEntity {
   id: string;
   name: string;
   tagId?: string;
@@ -15,7 +24,7 @@ export interface BazaarItem {
   order: number;
 }
 
-export interface BazaarList {
+export interface BazaarList extends SyncableEntity {
   id: string;
   title: string;
   tagId?: string;
@@ -24,12 +33,10 @@ export interface BazaarList {
   notes?: string;
   isNotePinned: boolean;
   items: BazaarItem[];
-  createdAt: string;
-  updatedAt: string;
   order: number;
 }
 
-export interface Tag {
+export interface Tag extends SyncableEntity {
   id: string;
   name: string;
   color: string;

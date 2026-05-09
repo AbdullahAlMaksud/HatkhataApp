@@ -1,8 +1,14 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
+import {
+  normalizeBazaarItem,
+  normalizeBazaarList,
+  normalizeLists,
+} from './normalizers';
+import { sqliteStateStorage } from './persist-storage';
 import type { BazaarItem, BazaarList, Unit } from '@/types';
+import { createEntityId } from '@/utils/id';
 
 interface ListState {
   lists: BazaarList[];
@@ -10,7 +16,7 @@ interface ListState {
     title: string,
     tagId?: string,
     isUrgent?: boolean,
-    items?: Array<{ name: string; quantity: string; price: number }>,
+    items?: { name: string; quantity: string; price: number }[],
   ) => string;
   updateList: (id: string, updates: Partial<Omit<BazaarList, 'id'>>) => void;
   deleteList: (id: string) => void;
@@ -31,11 +37,17 @@ interface ListState {
   toggleItemCheck: (listId: string, itemId: string) => void;
   reorderItems: (listId: string, items: BazaarItem[]) => void;
   clearCheckedItems: (listId: string) => void;
+  replaceAllLists: (lists: BazaarList[]) => void;
+  removeTagReferences: (tagId: string) => void;
 
   // Selectors
   getListById: (id: string) => BazaarList | undefined;
   getSortedLists: () => BazaarList[];
   getListsByTag: (tagId: string | null) => BazaarList[];
+}
+
+interface PersistedListState {
+  lists?: BazaarList[];
 }
 
 export const useListStore = create<ListState>()(
@@ -44,105 +56,184 @@ export const useListStore = create<ListState>()(
       lists: [],
 
       addList: (title, tagId, isUrgent = false, items = []) => {
-        const id = `list-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+        const id = createEntityId('list');
         const now = new Date().toISOString();
         const initialItems: BazaarItem[] = items.map((item, index) => ({
-          id: `item-${Date.now()}-${Math.random().toString(36).slice(2, 9)}-${index}`,
-          name: item.name,
-          quantity: item.quantity || '',
-          price: item.price || 0,
-          isChecked: false,
-          order: index,
+          ...normalizeBazaarItem(
+            {
+              id: createEntityId('item'),
+              name: item.name,
+              quantity: item.quantity || '',
+              price: item.price || 0,
+              isChecked: false,
+              order: index,
+              createdAt: now,
+              updatedAt: now,
+              syncStatus: 'pending',
+            },
+            index,
+          ),
         }));
-        const newList: BazaarList = {
-          id,
-          title,
-          tagId,
-          isUrgent,
-          isPinned: false,
-          isNotePinned: false,
-          items: initialItems,
-          createdAt: now,
-          updatedAt: now,
-          order: get().lists.length,
-        };
+        const newList = normalizeBazaarList(
+          {
+            id,
+            title,
+            tagId,
+            isUrgent,
+            isPinned: false,
+            isNotePinned: false,
+            items: initialItems,
+            createdAt: now,
+            updatedAt: now,
+            order: get().lists.length,
+            syncStatus: 'pending',
+          },
+          get().lists.length,
+        );
         set((state) => ({ lists: [...state.lists, newList] }));
         return id;
       },
 
       updateList: (id, updates) => {
+        const now = new Date().toISOString();
         set((state) => ({
           lists: state.lists.map((list) =>
             list.id === id
-              ? { ...list, ...updates, updatedAt: new Date().toISOString() }
+              ? normalizeBazaarList(
+                  {
+                    ...list,
+                    ...updates,
+                    updatedAt: now,
+                    syncStatus: 'pending',
+                    lastSyncedAt: undefined,
+                  },
+                  list.order,
+                )
               : list,
           ),
         }));
       },
 
       deleteList: (id) => {
+        const now = new Date().toISOString();
         set((state) => ({
           lists: state.lists
             .filter((list) => list.id !== id)
-            .map((list, index) => ({ ...list, order: index })),
+            .map((list, index) =>
+              normalizeBazaarList(
+                {
+                  ...list,
+                  order: index,
+                  updatedAt: now,
+                  syncStatus: 'pending',
+                  lastSyncedAt: undefined,
+                },
+                index,
+              ),
+            ),
         }));
       },
 
       reorderLists: (lists) => {
         set({
-          lists: lists.map((list, index) => ({ ...list, order: index })),
+          lists: lists.map((list, index) =>
+            normalizeBazaarList(
+              {
+                ...list,
+                order: index,
+                updatedAt: new Date().toISOString(),
+                syncStatus: 'pending',
+                lastSyncedAt: undefined,
+              },
+              index,
+            ),
+          ),
         });
       },
 
       togglePin: (id) => {
+        const now = new Date().toISOString();
         set((state) => ({
           lists: state.lists.map((list) =>
             list.id === id
-              ? { ...list, isPinned: !list.isPinned, updatedAt: new Date().toISOString() }
+              ? normalizeBazaarList(
+                  {
+                    ...list,
+                    isPinned: !list.isPinned,
+                    updatedAt: now,
+                    syncStatus: 'pending',
+                    lastSyncedAt: undefined,
+                  },
+                  list.order,
+                )
               : list,
           ),
         }));
       },
 
       addItem: (listId, name, tagId, quantity = '', unit, price = 0) => {
+        const now = new Date().toISOString();
         set((state) => ({
           lists: state.lists.map((list) => {
             if (list.id !== listId) return list;
-            const newItem: BazaarItem = {
-              id: `item-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
-              name,
-              tagId,
-              quantity,
-              unit,
-              price,
-              isChecked: false,
-              order: list.items.length,
-            };
+            const newItem = normalizeBazaarItem(
+              {
+                id: createEntityId('item'),
+                name,
+                tagId,
+                quantity,
+                unit,
+                price,
+                isChecked: false,
+                order: list.items.length,
+                createdAt: now,
+                updatedAt: now,
+                syncStatus: 'pending',
+              },
+              list.items.length,
+            );
             return {
               ...list,
               items: [...list.items, newItem],
-              updatedAt: new Date().toISOString(),
+              updatedAt: now,
+              syncStatus: 'pending',
+              lastSyncedAt: undefined,
             };
           }),
         }));
       },
 
       updateItem: (listId, itemId, updates) => {
+        const now = new Date().toISOString();
         set((state) => ({
           lists: state.lists.map((list) => {
             if (list.id !== listId) return list;
             return {
               ...list,
               items: list.items.map((item) =>
-                item.id === itemId ? { ...item, ...updates } : item,
+                item.id === itemId
+                  ? normalizeBazaarItem(
+                      {
+                        ...item,
+                        ...updates,
+                        updatedAt: now,
+                        syncStatus: 'pending',
+                        lastSyncedAt: undefined,
+                      },
+                      item.order,
+                    )
+                  : item,
               ),
-              updatedAt: new Date().toISOString(),
+              updatedAt: now,
+              syncStatus: 'pending',
+              lastSyncedAt: undefined,
             };
           }),
         }));
       },
 
       deleteItem: (listId, itemId) => {
+        const now = new Date().toISOString();
         set((state) => ({
           lists: state.lists.map((list) => {
             if (list.id !== listId) return list;
@@ -150,42 +241,84 @@ export const useListStore = create<ListState>()(
               ...list,
               items: list.items
                 .filter((item) => item.id !== itemId)
-                .map((item, index) => ({ ...item, order: index })),
-              updatedAt: new Date().toISOString(),
+                .map((item, index) =>
+                  normalizeBazaarItem(
+                    {
+                      ...item,
+                      order: index,
+                      updatedAt: now,
+                      syncStatus: 'pending',
+                      lastSyncedAt: undefined,
+                    },
+                    index,
+                  ),
+                ),
+              updatedAt: now,
+              syncStatus: 'pending',
+              lastSyncedAt: undefined,
             };
           }),
         }));
       },
 
       toggleItemCheck: (listId, itemId) => {
+        const now = new Date().toISOString();
         set((state) => ({
           lists: state.lists.map((list) => {
             if (list.id !== listId) return list;
             return {
               ...list,
               items: list.items.map((item) =>
-                item.id === itemId ? { ...item, isChecked: !item.isChecked } : item,
+                item.id === itemId
+                  ? normalizeBazaarItem(
+                      {
+                        ...item,
+                        isChecked: !item.isChecked,
+                        updatedAt: now,
+                        syncStatus: 'pending',
+                        lastSyncedAt: undefined,
+                      },
+                      item.order,
+                    )
+                  : item,
               ),
-              updatedAt: new Date().toISOString(),
+              updatedAt: now,
+              syncStatus: 'pending',
+              lastSyncedAt: undefined,
             };
           }),
         }));
       },
 
       reorderItems: (listId, items) => {
+        const now = new Date().toISOString();
         set((state) => ({
           lists: state.lists.map((list) => {
             if (list.id !== listId) return list;
             return {
               ...list,
-              items: items.map((item, index) => ({ ...item, order: index })),
-              updatedAt: new Date().toISOString(),
+              items: items.map((item, index) =>
+                normalizeBazaarItem(
+                  {
+                    ...item,
+                    order: index,
+                    updatedAt: now,
+                    syncStatus: 'pending',
+                    lastSyncedAt: undefined,
+                  },
+                  index,
+                ),
+              ),
+              updatedAt: now,
+              syncStatus: 'pending',
+              lastSyncedAt: undefined,
             };
           }),
         }));
       },
 
       clearCheckedItems: (listId) => {
+        const now = new Date().toISOString();
         set((state) => ({
           lists: state.lists.map((list) => {
             if (list.id !== listId) return list;
@@ -193,9 +326,65 @@ export const useListStore = create<ListState>()(
               ...list,
               items: list.items
                 .filter((item) => !item.isChecked)
-                .map((item, index) => ({ ...item, order: index })),
-              updatedAt: new Date().toISOString(),
+                .map((item, index) =>
+                  normalizeBazaarItem(
+                    {
+                      ...item,
+                      order: index,
+                      updatedAt: now,
+                      syncStatus: 'pending',
+                      lastSyncedAt: undefined,
+                    },
+                    index,
+                  ),
+                ),
+              updatedAt: now,
+              syncStatus: 'pending',
+              lastSyncedAt: undefined,
             };
+          }),
+        }));
+      },
+
+      replaceAllLists: (lists) => {
+        set({ lists: normalizeLists(lists) });
+      },
+
+      removeTagReferences: (tagId) => {
+        const now = new Date().toISOString();
+        set((state) => ({
+          lists: state.lists.map((list) => {
+            const hasListTag = list.tagId === tagId;
+            const hasItemTag = list.items.some((item) => item.tagId === tagId);
+
+            if (!hasListTag && !hasItemTag) {
+              return list;
+            }
+
+            return normalizeBazaarList(
+              {
+                ...list,
+                tagId: hasListTag ? undefined : list.tagId,
+                items: list.items.map((item, index) =>
+                  item.tagId === tagId
+                    ? normalizeBazaarItem(
+                        {
+                          ...item,
+                          tagId: undefined,
+                          updatedAt: now,
+                          syncStatus: 'pending',
+                          lastSyncedAt: undefined,
+                        },
+                        index,
+                      )
+                    : item,
+                ),
+                updatedAt: now,
+                syncStatus: 'pending',
+                lastSyncedAt: undefined,
+              },
+              list.order,
+            );
           }),
         }));
       },
@@ -219,7 +408,12 @@ export const useListStore = create<ListState>()(
     }),
     {
       name: 'bazaar-lists',
-      storage: createJSONStorage(() => AsyncStorage),
+      version: 2,
+      storage: createJSONStorage(() => sqliteStateStorage),
+      partialize: (state) => ({ lists: state.lists }),
+      migrate: (persistedState) => ({
+        lists: normalizeLists((persistedState as PersistedListState | undefined)?.lists),
+      }),
     },
   ),
 );

@@ -383,9 +383,12 @@ const CreateListModal: React.FC<CreateListModalProps> = ({
               key={item.id}
               item={{
                 ...item,
+                createdAt: '',
+                updatedAt: '',
                 isChecked: false,
                 tagId: undefined,
                 order: index,
+                syncStatus: 'pending',
               }}
               currencySymbol={currencySymbol}
               tagName={undefined}

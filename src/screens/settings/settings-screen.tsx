@@ -1,4 +1,5 @@
 import { File, Paths } from 'expo-file-system';
+import * as DocumentPicker from 'expo-document-picker';
 import { useRouter } from 'expo-router';
 import * as Sharing from 'expo-sharing';
 import React, { FC, useState } from 'react';
@@ -21,11 +22,12 @@ import {
   SettingsSectionHeader,
   SettingsToggleRow,
 } from '@/components';
-import { useListStore, useSettingsStore, useUserStore } from '@/store';
+import { useListStore, useSettingsStore, useTagStore, useUserStore } from '@/store';
 import { WithTheme, withUniTheme } from '@/styles/hoc/with-unistyles';
 import { FONT_FAMILIES } from '@/styles/theme/fonts';
 import type { FontFamily, ThemeMode } from '@/types';
 import { toLocalizedDigits } from '@/utils/calculations';
+import { buildBackupCsv, parseBackupCsv } from '@/utils/csv-backup';
 
 const CURRENCIES = [
   { code: 'BDT', symbol: '৳', label: 'টাকা (৳)', labelEn: 'Taka (৳)' },
@@ -37,6 +39,7 @@ const CURRENCIES = [
 
 const SettingsScreen:FC<WithTheme> = ({theme, rt}) => {
   const { t } = useTranslation('settings');
+  const { t: tc } = useTranslation('common');
   const insets = useSafeAreaInsets();
   const router = useRouter();
 
@@ -44,6 +47,9 @@ const SettingsScreen:FC<WithTheme> = ({theme, rt}) => {
   const signOut = useUserStore((s) => s.signOut);
   const settings = useSettingsStore();
   const lists = useListStore((s) => s.lists);
+  const replaceAllLists = useListStore((s) => s.replaceAllLists);
+  const tags = useTagStore((s) => s.tags);
+  const replaceAllTags = useTagStore((s) => s.replaceAllTags);
 
   const [showFontPicker, setShowFontPicker] = useState(false);
   const [showCurrencyPicker, setShowCurrencyPicker] = useState(false);
@@ -75,7 +81,7 @@ const SettingsScreen:FC<WithTheme> = ({theme, rt}) => {
 
   const handleSignOut = () => {
     Alert.alert(t('signOut'), t('signOutConfirm'), [
-      { text: 'Cancel', style: 'cancel' },
+      { text: tc('cancel'), style: 'cancel' },
       {
         text: t('signOut'),
         style: 'destructive',
@@ -89,29 +95,80 @@ const SettingsScreen:FC<WithTheme> = ({theme, rt}) => {
 
   const handleExportData = async () => {
     try {
-      const header = 'Date,List Title,Notes,Item Name,Quantity,Price,Status\\n';
-      const rows = lists.flatMap((list) =>
-        list.items.map((item) => {
-          const date = new Date(list.createdAt).toLocaleDateString();
-          const status = item.isChecked ? 'Completed' : 'Pending';
-          return `\"${date}\",\"${list.title}\",\"${list.notes || ''}\",\"${item.name}\",\"${item.quantity || ''}\",\"${item.price}\",\"${status}\"`;
-        })
-      );
-
-      const csvContent = header + rows.join('\\n');
-      const file = new File(Paths.document, 'hatkhata_export.csv');
-      if (!file.exists) {
-        file.create();
-      }
+      const csvContent = buildBackupCsv({ lists, tags });
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
+      const file = new File(Paths.document, `hatkhata-backup-${timestamp}.csv`);
+      file.create({ overwrite: true });
       file.write(csvContent);
 
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(file.uri);
       } else {
-        Alert.alert('Error', 'Sharing is not available on this device');
+        Alert.alert(t('exportSuccessTitle'), t('exportSavedMessage'));
       }
-    } catch (error) {
-      Alert.alert('Error', 'Failed to export data');
+    } catch {
+      Alert.alert(t('exportFailedTitle'), t('exportFailedMessage'));
+    }
+  };
+
+  const handleRestoreData = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: [
+          'text/csv',
+          'text/comma-separated-values',
+          'application/csv',
+          'application/vnd.ms-excel',
+        ],
+        copyToCacheDirectory: true,
+      });
+
+      if (result.canceled || result.assets.length === 0) {
+        return;
+      }
+
+      const file = new File(result.assets[0].uri);
+      const csvContent = await file.text();
+      const parsedBackup = parseBackupCsv(csvContent);
+
+      if (parsedBackup.summary.listCount === 0) {
+        Alert.alert(t('noBackupDataTitle'), t('noBackupDataMessage'));
+        return;
+      }
+
+      const localizedSummary = {
+        lists: toLocalizedDigits(parsedBackup.summary.listCount, settings.language),
+        items: toLocalizedDigits(parsedBackup.summary.itemCount, settings.language),
+        tags: toLocalizedDigits(parsedBackup.summary.tagCount, settings.language),
+      };
+
+      Alert.alert(
+        t('restoreConfirmTitle'),
+        t('restoreConfirmMessage', localizedSummary),
+        [
+          { text: tc('cancel'), style: 'cancel' },
+          {
+            text: t('restoreNow'),
+            style: 'destructive',
+            onPress: () => {
+              if (parsedBackup.hasExplicitTags) {
+                replaceAllTags(parsedBackup.tags);
+              }
+              replaceAllLists(parsedBackup.lists);
+
+              Alert.alert(
+                t('restoreSuccessTitle'),
+                t('restoreSuccessMessage', {
+                  lists: localizedSummary.lists,
+                  items: localizedSummary.items,
+                }),
+              );
+            },
+          },
+        ],
+      );
+    } catch {
+      Alert.alert(t('restoreFailedTitle'), t('restoreFailedMessage'));
     }
   };
 
@@ -216,14 +273,22 @@ const SettingsScreen:FC<WithTheme> = ({theme, rt}) => {
       </View>
 
       {/* Data Management */}
-      <SettingsSectionHeader title={'Data Management'} />
+      <SettingsSectionHeader title={t('dataManagement')} />
       <View style={styles.card}>
         <SettingsRow
           icon="download-outline"
-          label={'Export Data (CSV)'}
-          value={'Save as .csv'}
+          label={t('exportData')}
+          value={t('exportDataHint')}
           onPress={handleExportData}
           iconColor="#10B981"
+        />
+        <View style={styles.divider} />
+        <SettingsRow
+          icon="cloud-upload-outline"
+          label={t('restoreData')}
+          value={t('restoreDataHint')}
+          onPress={handleRestoreData}
+          iconColor="#2563EB"
         />
       </View>
 
@@ -238,7 +303,7 @@ const SettingsScreen:FC<WithTheme> = ({theme, rt}) => {
               settings.language === 'bn'
                 ? 'সাহায্যের জন্য ইমেইল করুন:\\nsupport@bazaarlist.app'
                 : 'For help, email us at:\\nsupport@bazaarlist.app',
-              [{ text: 'OK' }]
+              [{ text: tc('ok') }]
             );
           }}
         />

@@ -1,15 +1,17 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
+import { sqliteStateStorage } from './persist-storage';
 import type { UserProfile } from '@/types';
 
 interface UserState {
   profile: UserProfile;
   isOnboarded: boolean;
+  hasHydrated: boolean;
   setProfile: (profile: Partial<UserProfile>) => void;
   completeOnboarding: (name: string) => void;
   signOut: () => void;
+  setHasHydrated: (value: boolean) => void;
 }
 
 export const useUserStore = create<UserState>()(
@@ -19,6 +21,7 @@ export const useUserStore = create<UserState>()(
         name: '',
       },
       isOnboarded: false,
+      hasHydrated: false,
 
       setProfile: (updates) => {
         set((state) => ({
@@ -39,10 +42,25 @@ export const useUserStore = create<UserState>()(
           profile: { name: '' },
         });
       },
+
+      setHasHydrated: (value) => {
+        set({ hasHydrated: value });
+      },
     }),
     {
       name: 'bazaar-user',
-      storage: createJSONStorage(() => AsyncStorage),
+      storage: createJSONStorage(() => sqliteStateStorage),
+      partialize: (state) => ({
+        profile: state.profile,
+        isOnboarded: state.isOnboarded,
+      }),
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true);
+      },
     },
   ),
 );
+
+useUserStore.persist.onFinishHydration(() => {
+  useUserStore.setState({ hasHydrated: true });
+});

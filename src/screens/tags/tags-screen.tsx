@@ -22,6 +22,7 @@ const TagsScreen = () => {
   const addTag = useTagStore((s) => s.addTag);
   const updateTag = useTagStore((s) => s.updateTag);
   const deleteTag = useTagStore((s) => s.deleteTag);
+  const removeTagReferences = useListStore((s) => s.removeTagReferences);
   const lists = useListStore((s) => s.lists);
 
   const [showModal, setShowModal] = useState(false);
@@ -60,7 +61,10 @@ const TagsScreen = () => {
       {
         text: tc('delete'),
         style: 'destructive',
-        onPress: () => deleteTag(tag.id),
+        onPress: () => {
+          deleteTag(tag.id);
+          removeTagReferences(tag.id);
+        },
       },
     ]);
   };

@@ -33,7 +33,8 @@
           "image": "./src/assets/images/applogo/splash-icon-dark.png",
           "resizeMode": "contain"
         }
-      ]
+      ],
+      "expo-sqlite"
     ],
     "experiments": {
       "typedRoutes": true,
